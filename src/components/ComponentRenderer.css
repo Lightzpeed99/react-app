@@ -1,0 +1,255 @@
+/* src/components/ComponentRenderer.css */
+.component-container {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.component-container:hover {
+  border-color: rgba(0, 255, 65, 0.3);
+}
+
+.component-header {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.component-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.expand-btn {
+  background: none;
+  border: none;
+  color: #00ff41;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.expand-btn:hover {
+  color: #ffffff;
+  transform: scale(1.2);
+}
+
+.component-title h4 {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.delete-component-btn {
+  background: rgba(255, 71, 87, 0.1);
+  border: 1px solid rgba(255, 71, 87, 0.3);
+  color: #ff4757;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 16px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-component-btn:hover {
+  background: rgba(255, 71, 87, 0.2);
+  transform: scale(1.1);
+}
+
+.component-content {
+  padding: 24px;
+}
+
+/* Component-specific styles */
+.item-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  align-items: flex-start;
+}
+
+.item-row input,
+.item-row textarea {
+  flex: 1;
+}
+
+.remove-btn {
+  background: rgba(255, 71, 87, 0.1);
+  border: 1px solid rgba(255, 71, 87, 0.3);
+  color: #ff4757;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.remove-btn:hover {
+  background: rgba(255, 71, 87, 0.2);
+  transform: scale(1.05);
+}
+
+.add-btn {
+  background: rgba(0, 255, 65, 0.1);
+  border: 1px solid rgba(0, 255, 65, 0.3);
+  color: #00ff41;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  font-size: 14px;
+  margin-top: 16px;
+}
+
+.add-btn:hover {
+  background: rgba(0, 255, 65, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 255, 65, 0.2);
+}
+
+/* Habilidades Component */
+.habilidad-item {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.habilidad-item textarea {
+  margin-top: 8px;
+}
+
+/* Evolución Arcos Component */
+.arco-section {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.arco-section h5 {
+  color: #00ff41;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.arco-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Relaciones Component */
+.relacion-item {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.relacion-header {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  align-items: center;
+}
+
+.relacion-header input {
+  flex: 1;
+}
+
+/* Atributos Clave Component */
+.atributo-item {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.atributo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.atributo-header label {
+  color: #00ff41;
+  font-weight: 600;
+  text-transform: capitalize;
+  margin: 0;
+}
+
+.add-atributo {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.add-atributo input {
+  flex: 1;
+}
+
+/* Manifestación Component */
+.manifestacion-component {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.manifestacion-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.manifestacion-field label {
+  margin-bottom: 8px;
+}
+
+@media (max-width: 768px) {
+  .component-content {
+    padding: 16px;
+  }
+  
+  .arco-fields {
+    gap: 12px;
+  }
+  
+  .relacion-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  
+  .add-atributo {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
