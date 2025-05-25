@@ -1,23 +1,25 @@
 /* src/components/ComponentRenderer.css */
 .component-container {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
+  background: rgba(0, 212, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
   overflow: hidden;
   transition: all 0.3s ease;
+  margin-bottom: 20px;
 }
 
 .component-container:hover {
-  border-color: rgba(0, 255, 65, 0.3);
+  border-color: var(--primary-blue);
+  box-shadow: 0 4px 20px rgba(0, 212, 255, 0.1);
 }
 
 .component-header {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(0, 212, 255, 0.05);
   padding: 16px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .component-title {
@@ -29,7 +31,7 @@
 .expand-btn {
   background: none;
   border: none;
-  color: #00ff41;
+  color: var(--primary-blue);
   font-size: 16px;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -38,26 +40,30 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 4px;
 }
 
 .expand-btn:hover {
   color: #ffffff;
+  background: rgba(0, 212, 255, 0.1);
   transform: scale(1.2);
 }
 
 .component-title h4 {
   color: #ffffff;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
   margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .delete-component-btn {
-  background: rgba(255, 71, 87, 0.1);
-  border: 1px solid rgba(255, 71, 87, 0.3);
-  color: #ff4757;
+  background: rgba(255, 51, 51, 0.1);
+  border: 1px solid rgba(255, 51, 51, 0.3);
+  color: #ff3333;
   padding: 8px;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
   font-size: 16px;
@@ -66,15 +72,32 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  backdrop-filter: blur(10px);
 }
 
 .delete-component-btn:hover {
-  background: rgba(255, 71, 87, 0.2);
+  background: rgba(255, 51, 51, 0.2);
   transform: scale(1.1);
+  box-shadow: 0 4px 15px rgba(255, 51, 51, 0.3);
 }
 
 .component-content {
   padding: 24px;
+}
+
+/* Estilos base para todos los componentes */
+.field-group {
+  margin-bottom: 20px;
+}
+
+.field-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--primary-blue);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 /* Component-specific styles */
@@ -91,26 +114,32 @@
 }
 
 .remove-btn {
-  background: rgba(255, 71, 87, 0.1);
-  border: 1px solid rgba(255, 71, 87, 0.3);
-  color: #ff4757;
+  background: rgba(255, 51, 51, 0.1);
+  border: 1px solid rgba(255, 51, 51, 0.3);
+  color: #ff3333;
   padding: 8px 12px;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s ease;
   font-size: 14px;
   font-weight: 600;
+  min-width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .remove-btn:hover {
-  background: rgba(255, 71, 87, 0.2);
+  background: rgba(255, 51, 51, 0.2);
   transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(255, 51, 51, 0.2);
 }
 
 .add-btn {
-  background: rgba(0, 255, 65, 0.1);
-  border: 1px solid rgba(0, 255, 65, 0.3);
-  color: #00ff41;
+  background: rgba(0, 212, 255, 0.1);
+  border: 1px solid var(--border-color);
+  color: var(--primary-blue);
   padding: 12px 20px;
   border-radius: 8px;
   cursor: pointer;
@@ -118,19 +147,22 @@
   font-weight: 600;
   font-size: 14px;
   margin-top: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  backdrop-filter: blur(10px);
 }
 
 .add-btn:hover {
-  background: rgba(0, 255, 65, 0.2);
+  background: rgba(0, 212, 255, 0.2);
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 255, 65, 0.2);
+  box-shadow: 0 8px 20px rgba(0, 212, 255, 0.2);
 }
 
 /* Habilidades Component */
 .habilidad-item {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  background: rgba(0, 212, 255, 0.02);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
   padding: 16px;
   margin-bottom: 16px;
 }
@@ -141,17 +173,17 @@
 
 /* Evolución Arcos Component */
 .arco-section {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  background: rgba(0, 212, 255, 0.02);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
   padding: 16px;
   margin-bottom: 16px;
 }
 
 .arco-section h5 {
-  color: #00ff41;
+  color: var(--secondary-green);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 12px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -165,9 +197,9 @@
 
 /* Relaciones Component */
 .relacion-item {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  background: rgba(0, 212, 255, 0.02);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
   padding: 16px;
   margin-bottom: 16px;
 }
@@ -185,9 +217,9 @@
 
 /* Atributos Clave Component */
 .atributo-item {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  background: rgba(0, 212, 255, 0.02);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
   padding: 16px;
   margin-bottom: 16px;
 }
@@ -200,7 +232,7 @@
 }
 
 .atributo-header label {
-  color: #00ff41;
+  color: var(--primary-blue);
   font-weight: 600;
   text-transform: capitalize;
   margin: 0;
@@ -233,6 +265,65 @@
   margin-bottom: 8px;
 }
 
+/* Componentes de Historias - Estilos específicos */
+.tematica-principal-component,
+.estilo-visual-component,
+.perfil-sonoro-component,
+.estado-emocional-component {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.secuencia-item,
+.soundtrack-item {
+  background: rgba(0, 212, 255, 0.02);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.secuencia-item textarea,
+.soundtrack-item input:last-child {
+  margin-top: 8px;
+}
+
+.conexion-item {
+  background: rgba(0, 212, 255, 0.02);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.conexion-header,
+.soundtrack-header {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  align-items: center;
+}
+
+.conexion-header input,
+.soundtrack-header input {
+  flex: 1;
+}
+
+/* Efectos adicionales */
+.component-container {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.component-container:nth-child(odd) {
+  animation-delay: 0.1s;
+}
+
+.component-container:nth-child(even) {
+  animation-delay: 0.2s;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
   .component-content {
     padding: 16px;
@@ -242,7 +333,9 @@
     gap: 12px;
   }
   
-  .relacion-header {
+  .relacion-header,
+  .conexion-header,
+  .soundtrack-header {
     flex-direction: column;
     align-items: stretch;
     gap: 8px;
@@ -251,5 +344,15 @@
   .add-atributo {
     flex-direction: column;
     align-items: stretch;
+  }
+  
+  .item-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .remove-btn {
+    align-self: flex-end;
+    min-width: 80px;
   }
 }

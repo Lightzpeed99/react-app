@@ -1,8 +1,8 @@
 /* src/components/Navigation.css */
 .navigation {
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.9);
   backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(0, 255, 65, 0.2);
+  border-bottom: 1px solid var(--border-color);
   padding: 16px 24px;
   display: flex;
   justify-content: space-between;
@@ -10,29 +10,49 @@
   position: sticky;
   top: 0;
   z-index: 100;
+  box-shadow: 0 4px 20px rgba(0, 212, 255, 0.1);
 }
 
 .nav-brand {
   display: flex;
+  align-items: center;
+}
+
+.nav-brand-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
   flex-direction: column;
+  align-items: flex-start;
+  transition: all 0.3s ease;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.nav-brand-btn:hover {
+  background: rgba(0, 212, 255, 0.1);
+  transform: translateX(4px);
 }
 
 .nav-brand h1 {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 800;
-  background: linear-gradient(135deg, #00ff41 0%, #00cc33 100%);
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-green) 50%, var(--secondary-orange) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin: 0;
+  animation: glow 3s ease-in-out infinite;
 }
 
 .nav-subtitle {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
+  font-size: 11px;
+  color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
   margin-top: -2px;
+  opacity: 0.8;
 }
 
 .nav-actions {
@@ -46,49 +66,20 @@
   gap: 12px;
 }
 
-.nav-btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 14px;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  backdrop-filter: blur(10px);
-}
-
-.nav-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-1px);
-}
-
-.nav-btn.active {
-  background: linear-gradient(135deg, #00ff41 0%, #00cc33 100%);
-  color: #000;
-}
-
-.nav-btn.primary {
-  background: linear-gradient(135deg, #00ff41 0%, #00cc33 100%);
-  color: #000;
-  font-weight: 600;
-}
-
-.nav-btn.primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 255, 65, 0.3);
-}
-
-.nav-btn.secondary {
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
 .file-input-label {
   cursor: pointer;
+}
+
+/* Efectos adicionales para navegación */
+.navigation::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--primary-blue), transparent);
+  opacity: 0.5;
 }
 
 @media (max-width: 768px) {
@@ -102,5 +93,9 @@
     width: 100%;
     justify-content: center;
     flex-wrap: wrap;
+  }
+  
+  .nav-brand h1 {
+    font-size: 24px;
   }
 }

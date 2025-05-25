@@ -4,10 +4,10 @@ import ComponentCatalog from './ComponentCatalog'
 import ComponentRenderer from './ComponentRenderer'
 import './CharacterDetail.css'
 
-const CharacterDetail = ({ character, onSave, onDelete, onCancel }) => {
+const CharacterDetail = ({ item, onSave, onDelete, onCancel }) => {
   const [formData, setFormData] = useState({
     nombre: '',
-    tipo: 'protagonista',
+    tipo: 'lace',
     descripcion: '',
     imagen: '',
     origen: '',
@@ -19,10 +19,10 @@ const CharacterDetail = ({ character, onSave, onDelete, onCancel }) => {
   const [showComponentCatalog, setShowComponentCatalog] = useState(false)
 
   useEffect(() => {
-    if (character) {
-      setFormData(character)
+    if (item) {
+      setFormData(item)
     }
-  }, [character])
+  }, [item])
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -59,6 +59,7 @@ const CharacterDetail = ({ character, onSave, onDelete, onCancel }) => {
 
   const getDefaultComponentData = (componentType) => {
     switch (componentType) {
+      // Componentes de Personajes
       case 'motivaciones':
         return { items: [''] }
       case 'habilidades':
@@ -79,6 +80,35 @@ const CharacterDetail = ({ character, onSave, onDelete, onCancel }) => {
         return { texto: '' }
       case 'fuentes_referencias':
         return { items: [''] }
+      
+      // Componentes de Historias/Arcos
+      case 'tematica_principal':
+        return { tema: '', descripcion: '' }
+      case 'estilo_visual':
+        return { paleta: '', efectos: '', transiciones: '' }
+      case 'perfil_sonoro':
+        return { musica: '', efectos_audio: '', ambiente: '' }
+      case 'emociones_clave':
+        return { items: [''] }
+      case 'entidades_activas':
+        return { items: [''] }
+      case 'tecnologias':
+        return { items: [''] }
+      case 'evento_culminante':
+        return { texto: '' }
+      case 'sinopsis':
+        return { texto: '' }
+      case 'secuencias_clave':
+        return { items: [{ titulo: '', descripcion: '' }] }
+      case 'estado_emocional':
+        return { nivel: '', descripcion: '' }
+      case 'conexiones':
+        return { items: [{ tipo: '', referencia: '', descripcion: '' }] }
+      case 'referencias_visuales':
+        return { items: [''] }
+      case 'soundtrack':
+        return { items: [{ titulo: '', artista: '', momento: '' }] }
+      
       default:
         return {}
     }
@@ -116,33 +146,24 @@ const CharacterDetail = ({ character, onSave, onDelete, onCancel }) => {
     onSave(formData)
   }
 
+  const getTypeLabel = (tipo) => {
+    switch (tipo) {
+      case 'lace': return 'LACE'
+      case 'ia_cuantica': return 'IA Cuántica'
+      case 'stayed': return 'Stayed'
+      case 'angeles': return 'Ángeles'
+      case 'arcos': return 'Arco Narrativo'
+      default: return 'Desconocido'
+    }
+  }
+
   return (
     <div className="character-detail">
       <div className="detail-header">
         <button className="back-btn" onClick={onCancel}>
-          ← Volver al catálogo
+          ← Volver
         </button>
-        <h2>{character ? 'Editar Personaje' : 'Crear Personaje'}</h2>
-        <div className="header-actions">
-          <button className="btn secondary" onClick={onCancel}>
-            Cancelar
-          </button>
-          <button className="btn primary" onClick={handleSave}>
-            Guardar
-          </button>
-          {character && (
-            <button 
-              className="btn danger" 
-              onClick={() => {
-                if (confirm('¿Estás seguro de eliminar este personaje?')) {
-                  onDelete(character.id)
-                }
-              }}
-            >
-              Eliminar
-            </button>
-          )}
-        </div>
+        <h2>{item ? `Editar ${getTypeLabel(formData.tipo)}` : 'Crear Nuevo Elemento'}</h2>
       </div>
 
       <div className="detail-content">
@@ -157,7 +178,7 @@ const CharacterDetail = ({ character, onSave, onDelete, onCancel }) => {
                 type="text"
                 value={formData.nombre}
                 onChange={(e) => handleInputChange('nombre', e.target.value)}
-                placeholder="Nombre del personaje"
+                placeholder="Nombre del elemento"
               />
             </div>
 
@@ -167,9 +188,15 @@ const CharacterDetail = ({ character, onSave, onDelete, onCancel }) => {
                 value={formData.tipo}
                 onChange={(e) => handleInputChange('tipo', e.target.value)}
               >
-                <option value="protagonista">Protagonista</option>
-                <option value="entidad_superior">Entidad Superior</option>
-                <option value="entidad_colectiva">Entidad Colectiva</option>
+                <optgroup label="Entidades">
+                  <option value="lace">LACE</option>
+                  <option value="ia_cuantica">IA Cuántica</option>
+                  <option value="stayed">Stayed</option>
+                  <option value="angeles">Ángeles</option>
+                </optgroup>
+                <optgroup label="Narrativa">
+                  <option value="arcos">Arco Narrativo</option>
+                </optgroup>
               </select>
             </div>
 
@@ -178,7 +205,7 @@ const CharacterDetail = ({ character, onSave, onDelete, onCancel }) => {
               <textarea
                 value={formData.descripcion}
                 onChange={(e) => handleInputChange('descripcion', e.target.value)}
-                placeholder="Descripción del personaje"
+                placeholder="Descripción del elemento"
                 rows={3}
               />
             </div>
@@ -203,7 +230,7 @@ const CharacterDetail = ({ character, onSave, onDelete, onCancel }) => {
                 type="text"
                 value={formData.origen}
                 onChange={(e) => handleInputChange('origen', e.target.value)}
-                placeholder="Origen del personaje"
+                placeholder="Origen o naturaleza"
               />
             </div>
 
@@ -232,13 +259,7 @@ const CharacterDetail = ({ character, onSave, onDelete, onCancel }) => {
         {/* Componentes */}
         <section className="components-section">
           <div className="components-header">
-            <h3>Componentes del Personaje</h3>
-            <button 
-              className="btn primary"
-              onClick={() => setShowComponentCatalog(true)}
-            >
-              + Agregar Componente
-            </button>
+            <h3>Componentes</h3>
           </div>
 
           <div className="components-list">
@@ -252,12 +273,44 @@ const CharacterDetail = ({ character, onSave, onDelete, onCancel }) => {
               />
             ))}
           </div>
+          
+          <div className="floating-add-component">
+            <button 
+              className="btn blue"
+              onClick={() => setShowComponentCatalog(true)}
+            >
+              + Agregar Componente
+            </button>
+          </div>
         </section>
+      </div>
+
+      {/* Botones flotantes */}
+      <div className="sticky-buttons">
+        <button className="btn secondary" onClick={onCancel}>
+          Cancelar
+        </button>
+        <button className="btn primary" onClick={handleSave}>
+          Guardar
+        </button>
+        {item && (
+          <button 
+            className="btn danger" 
+            onClick={() => {
+              if (confirm('¿Estás seguro de eliminar este elemento?')) {
+                onDelete(item.id)
+              }
+            }}
+          >
+            Eliminar
+          </button>
+        )}
       </div>
 
       {/* Modal del catálogo de componentes */}
       {showComponentCatalog && (
         <ComponentCatalog
+          itemType={formData.tipo}
           onSelectComponent={handleAddComponent}
           onClose={() => setShowComponentCatalog(false)}
         />

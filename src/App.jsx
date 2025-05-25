@@ -7,59 +7,59 @@ import Navigation from './components/Navigation'
 
 function App() {
   const [currentView, setCurrentView] = useState('catalog')
-  const [selectedCharacter, setSelectedCharacter] = useState(null)
-  const [characters, setCharacters] = useState([])
+  const [selectedItem, setSelectedItem] = useState(null)
+  const [items, setItems] = useState([])
 
-  // Cargar personajes del localStorage al iniciar
+  // Cargar items del localStorage al iniciar
   useEffect(() => {
-    const savedCharacters = localStorage.getItem('reloadxps_characters')
-    if (savedCharacters) {
-      setCharacters(JSON.parse(savedCharacters))
+    const savedItems = localStorage.getItem('reloadxps_items')
+    if (savedItems) {
+      setItems(JSON.parse(savedItems))
     }
   }, [])
 
-  // Guardar personajes en localStorage cuando cambien
+  // Guardar items en localStorage cuando cambien
   useEffect(() => {
-    localStorage.setItem('reloadxps_characters', JSON.stringify(characters))
-  }, [characters])
+    localStorage.setItem('reloadxps_items', JSON.stringify(items))
+  }, [items])
 
-  const handleViewCharacter = (character) => {
-    setSelectedCharacter(character)
+  const handleViewItem = (item) => {
+    setSelectedItem(item)
     setCurrentView('detail')
   }
 
-  const handleCreateCharacter = () => {
-    setSelectedCharacter(null)
+  const handleCreateItem = () => {
+    setSelectedItem(null)
     setCurrentView('detail')
   }
 
-  const handleSaveCharacter = (characterData) => {
-    if (selectedCharacter) {
-      // Editar personaje existente
-      setCharacters(characters.map(char => 
-        char.id === selectedCharacter.id ? { ...characterData, id: selectedCharacter.id } : char
+  const handleSaveItem = (itemData) => {
+    if (selectedItem) {
+      // Editar item existente
+      setItems(items.map(item => 
+        item.id === selectedItem.id ? { ...itemData, id: selectedItem.id } : item
       ))
     } else {
-      // Crear nuevo personaje
-      const newCharacter = {
-        ...characterData,
+      // Crear nuevo item
+      const newItem = {
+        ...itemData,
         id: Date.now().toString()
       }
-      setCharacters([...characters, newCharacter])
+      setItems([...items, newItem])
     }
     setCurrentView('catalog')
   }
 
-  const handleDeleteCharacter = (characterId) => {
-    setCharacters(characters.filter(char => char.id !== characterId))
+  const handleDeleteItem = (itemId) => {
+    setItems(items.filter(item => item.id !== itemId))
     setCurrentView('catalog')
   }
 
   const handleExportData = () => {
-    const dataStr = JSON.stringify(characters, null, 2)
+    const dataStr = JSON.stringify(items, null, 2)
     const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr)
     
-    const exportFileDefaultName = 'reloadxps_characters.json'
+    const exportFileDefaultName = 'reloadxps_data.json'
     
     const linkElement = document.createElement('a')
     linkElement.setAttribute('href', dataUri)
@@ -74,7 +74,7 @@ function App() {
       reader.onload = (e) => {
         try {
           const importedData = JSON.parse(e.target.result)
-          setCharacters(importedData)
+          setItems(importedData)
         } catch (error) {
           alert('Error al importar el archivo. Verifica que sea un JSON válido.')
         }
@@ -87,7 +87,7 @@ function App() {
     <div className="app">
       <Navigation 
         onHome={() => setCurrentView('catalog')}
-        onCreateCharacter={handleCreateCharacter}
+        onCreateItem={handleCreateItem}
         onExportData={handleExportData}
         onImportData={handleImportData}
         currentView={currentView}
@@ -96,15 +96,15 @@ function App() {
       <main className="main-content">
         {currentView === 'catalog' ? (
           <CharacterCatalog 
-            characters={characters}
-            onViewCharacter={handleViewCharacter}
-            onCreateCharacter={handleCreateCharacter}
+            items={items}
+            onViewItem={handleViewItem}
+            onCreateItem={handleCreateItem}
           />
         ) : (
           <CharacterDetail 
-            character={selectedCharacter}
-            onSave={handleSaveCharacter}
-            onDelete={handleDeleteCharacter}
+            item={selectedItem}
+            onSave={handleSaveItem}
+            onDelete={handleDeleteItem}
             onCancel={() => setCurrentView('catalog')}
           />
         )}

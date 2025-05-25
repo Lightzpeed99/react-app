@@ -3,7 +3,7 @@ import './Navigation.css'
 
 const Navigation = ({ 
   onHome, 
-  onCreateCharacter, 
+  onCreateItem, 
   onExportData, 
   onImportData, 
   currentView 
@@ -11,34 +11,32 @@ const Navigation = ({
   return (
     <nav className="navigation">
       <div className="nav-brand">
-        <h1>ReloadXPs</h1>
-        <span className="nav-subtitle">Character Platform</span>
+        <button 
+          className="nav-brand-btn"
+          onClick={onHome}
+        >
+          <h1>ReloadXPs</h1>
+          <span className="nav-subtitle">Universe Platform</span>
+        </button>
       </div>
       
       <div className="nav-actions">
         <button 
-          className={`nav-btn ${currentView === 'catalog' ? 'active' : ''}`}
-          onClick={onHome}
+          className="btn blue"
+          onClick={onCreateItem}
         >
-          Catálogo
-        </button>
-        
-        <button 
-          className="nav-btn primary"
-          onClick={onCreateCharacter}
-        >
-          + Crear Personaje
+          Crear
         </button>
         
         <div className="nav-tools">
           <button 
-            className="nav-btn secondary"
+            className="btn secondary"
             onClick={onExportData}
           >
             Exportar
           </button>
           
-          <label className="nav-btn secondary file-input-label">
+          <label className="btn secondary file-input-label">
             Importar
             <input 
               type="file" 
