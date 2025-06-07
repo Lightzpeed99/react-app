@@ -15,8 +15,8 @@ const Navigation = ({
           className="nav-brand-btn"
           onClick={onHome}
         >
-          <h1>ReloadXPs</h1>
-          <span className="nav-subtitle">Universe Platform</span>
+          <h1>Reload</h1>
+          <span className="nav-subtitle">The Project Verse</span>
         </button>
       </div>
       
@@ -30,14 +30,14 @@ const Navigation = ({
         
         <div className="nav-tools">
           <button 
-            className="btn secondary"
+            className="nav-tool-btn"
             onClick={onExportData}
           >
-            Exportar
+            ⬇ Exportar
           </button>
           
-          <label className="btn secondary file-input-label">
-            Importar
+          <label className="nav-tool-btn file-input-label">
+            ⬆ Importar
             <input 
               type="file" 
               accept=".json"

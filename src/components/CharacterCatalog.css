@@ -1,11 +1,30 @@
 /* src/components/CharacterCatalog.css */
 .character-catalog {
   padding: 40px 0;
+  position: relative;
+}
+
+/* Efectos tecnológicos de fondo */
+.character-catalog::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 20%, rgba(0, 212, 255, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(0, 255, 65, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(255, 102, 0, 0.02) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .catalog-header {
   text-align: center;
   margin-bottom: 50px;
+  position: relative;
+  z-index: 1;
 }
 
 .catalog-header h2 {
@@ -18,46 +37,39 @@
   margin-bottom: 16px;
   text-transform: uppercase;
   letter-spacing: 2px;
+  /* Efectos tecnológicos mejorados */
+  text-shadow: 0 0 30px rgba(0, 212, 255, 0.4);
+  filter: drop-shadow(0 0 10px rgba(0, 255, 65, 0.2));
+  position: relative;
 }
 
-.catalog-stats {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 20px;
-  font-size: 16px;
+/* Efecto de pulso tecnológico en el título */
+.catalog-header h2::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--primary-blue), transparent);
+  animation: pulse-line 2s ease-in-out infinite;
 }
 
-.stat-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
+@keyframes pulse-line {
+  0%, 100% { opacity: 0.3; width: 100px; }
+  50% { opacity: 1; width: 200px; }
 }
 
-.stat-number {
-  font-size: 24px;
-  font-weight: 800;
-  color: var(--primary-blue);
-}
-
-.stat-label {
-  font-size: 12px;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.stat-divider {
-  color: var(--text-muted);
-  font-size: 20px;
-}
+/* PUNTO 2: Estilos removidos de .catalog-stats ya que se eliminó */
 
 .empty-state {
   text-align: center;
   padding: 100px 20px;
   max-width: 600px;
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
 .empty-icon {
@@ -85,10 +97,25 @@
   display: flex;
   flex-direction: column;
   gap: 60px;
+  position: relative;
+  z-index: 1;
 }
 
 .catalog-section {
   animation: fadeIn 0.8s ease-out;
+  position: relative;
+}
+
+/* Efectos tecnológicos en las secciones */
+.catalog-section::before {
+  content: '';
+  position: absolute;
+  top: -20px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.3), transparent);
+  opacity: 0.5;
 }
 
 .section-title {
@@ -101,10 +128,39 @@
   margin-bottom: 32px;
   text-transform: uppercase;
   letter-spacing: 1px;
+  position: relative;
+  padding-left: 20px;
+}
+
+/* Indicador lateral tecnológico */
+.section-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 30px;
+  background: linear-gradient(180deg, var(--primary-blue), var(--secondary-green));
+  border-radius: 2px;
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
 }
 
 .section-icon {
   font-size: 28px;
+}
+
+/* Contador de entidades integrado en el título */
+.entity-count {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: rgba(0, 212, 255, 0.1);
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  margin-left: auto;
+  backdrop-filter: blur(10px);
 }
 
 .items-grid {
@@ -117,8 +173,11 @@
 .create-new-section {
   text-align: center;
   padding: 40px 0;
+  position: relative;
+  z-index: 1;
 }
 
+/* Efectos tecnológicos en el botón crear */
 .create-new-btn {
   padding: 20px 40px;
   font-size: 16px;
@@ -126,10 +185,60 @@
   align-items: center;
   gap: 12px;
   min-width: 280px;
+  position: relative;
+  overflow: hidden;
+}
+
+.create-new-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+  transform: translateX(-100%);
+  transition: transform 0.6s;
+}
+
+.create-new-btn:hover::after {
+  transform: translateX(100%);
 }
 
 .btn-icon {
   font-size: 20px;
+  animation: float 2s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-4px); }
+}
+
+/* Efectos de partículas tecnológicas (usando CSS) */
+.catalog-sections::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(1px 1px at 20px 30px, rgba(0, 212, 255, 0.3), transparent),
+    radial-gradient(1px 1px at 40px 70px, rgba(0, 255, 65, 0.2), transparent),
+    radial-gradient(1px 1px at 90px 40px, rgba(255, 102, 0, 0.2), transparent),
+    radial-gradient(1px 1px at 130px 80px, rgba(0, 212, 255, 0.2), transparent);
+  background-repeat: repeat;
+  background-size: 150px 100px;
+  animation: particle-float 20s linear infinite;
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+@keyframes particle-float {
+  0% { transform: translateY(0px); }
+  100% { transform: translateY(-100px); }
 }
 
 @media (max-width: 768px) {
@@ -152,13 +261,14 @@
   
   .section-title {
     font-size: 20px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding-left: 16px;
   }
   
-  .catalog-stats {
-    gap: 15px;
-  }
-  
-  .stat-number {
-    font-size: 20px;
+  .entity-count {
+    margin-left: 0;
+    align-self: flex-start;
   }
 }

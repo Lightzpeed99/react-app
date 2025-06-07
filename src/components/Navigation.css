@@ -35,6 +35,7 @@
   transform: translateX(4px);
 }
 
+/* PUNTO 1: Arreglo del título ReloadXPs - removido background que interfería */
 .nav-brand h1 {
   font-size: 28px;
   font-weight: 800;
@@ -43,7 +44,9 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin: 0;
-  animation: glow 3s ease-in-out infinite;
+  /* Removido animation: glow que causaba el background */
+  text-shadow: 0 0 30px rgba(0, 212, 255, 0.6), 0 0 60px rgba(0, 255, 65, 0.4);
+  filter: drop-shadow(0 0 10px rgba(255, 102, 0, 0.3));
 }
 
 .nav-subtitle {
@@ -61,13 +64,67 @@
   gap: 16px;
 }
 
+/* PUNTO 3: Rediseño de botones para armonizar con CREAR */
 .nav-tools {
   display: flex;
   gap: 12px;
 }
 
+/* Nuevo estilo para botones de herramientas - más tecnológico */
+.nav-tool-btn {
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 0, 0, 0.3) 100%);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  color: var(--primary-blue);
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  box-shadow: 
+    0 0 20px rgba(0, 212, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  min-width: 120px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-tool-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.nav-tool-btn:hover::before {
+  left: 100%;
+}
+
+.nav-tool-btn:hover {
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.2) 0%, rgba(0, 0, 0, 0.4) 100%);
+  border-color: var(--primary-blue);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 25px rgba(0, 212, 255, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+/* Estilo especial para el input file */
 .file-input-label {
   cursor: pointer;
+  display: inline-block;
 }
 
 /* Efectos adicionales para navegación */
@@ -80,6 +137,18 @@
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--primary-blue), transparent);
   opacity: 0.5;
+}
+
+/* Efectos tecnológicos adicionales */
+.navigation::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.3), transparent);
+  opacity: 0.3;
 }
 
 @media (max-width: 768px) {
@@ -97,5 +166,10 @@
   
   .nav-brand h1 {
     font-size: 24px;
+  }
+  
+  .nav-tool-btn {
+    padding: 10px 16px;
+    font-size: 11px;
   }
 }

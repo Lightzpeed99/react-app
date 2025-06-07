@@ -9,21 +9,6 @@ const CharacterCatalog = ({ items, onViewItem, onCreateItem }) => {
 
   return (
     <div className="character-catalog">
-      <div className="catalog-header">
-        <h2>Universo ReloadXPs</h2>
-        <div className="catalog-stats">
-          <span className="stat-item">
-            <span className="stat-number">{personajes.length}</span>
-            <span className="stat-label">Entidades</span>
-          </span>
-          <span className="stat-divider">•</span>
-          <span className="stat-item">
-            <span className="stat-number">{arcos.length}</span>
-            <span className="stat-label">Arcos</span>
-          </span>
-        </div>
-      </div>
-      
       {items.length === 0 ? (
         <div className="empty-state">
           <div className="empty-icon">🌌</div>
@@ -43,6 +28,7 @@ const CharacterCatalog = ({ items, onViewItem, onCreateItem }) => {
               <h3 className="section-title">
                 <span className="section-icon">👥</span>
                 Entidades del Universo
+                <span className="entity-count">({personajes.length})</span>
               </h3>
               <div className="items-grid">
                 {personajes.map(item => (
@@ -61,6 +47,7 @@ const CharacterCatalog = ({ items, onViewItem, onCreateItem }) => {
               <h3 className="section-title">
                 <span className="section-icon">📖</span>
                 Arcos Narrativos
+                <span className="entity-count">({arcos.length})</span>
               </h3>
               <div className="items-grid">
                 {arcos.map(item => (
@@ -73,16 +60,6 @@ const CharacterCatalog = ({ items, onViewItem, onCreateItem }) => {
               </div>
             </section>
           )}
-
-          <div className="create-new-section">
-            <button 
-              className="btn blue create-new-btn"
-              onClick={onCreateItem}
-            >
-              <span className="btn-icon">✨</span>
-              Crear Nueva Entidad o Arco
-            </button>
-          </div>
         </div>
       )}
     </div>
