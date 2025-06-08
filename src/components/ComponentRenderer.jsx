@@ -32,7 +32,7 @@ const ComponentRenderer = ({ componentId, component, onUpdate, onDelete }) => {
       estado_emocional: 'Estado Emocional',
       conexiones: 'Conexiones',
       referencias_visuales: 'Referencias Visuales',
-      soundtrack: 'Soundtrack'
+      soundtrack: 'Reload Soundtrack'  // Título con estilo Reload
     }
     return names[type] || type
   }
@@ -98,15 +98,17 @@ const ComponentRenderer = ({ componentId, component, onUpdate, onDelete }) => {
     <div className="component-container">
       <div className="component-header">
         <div className="component-title">
-          <button 
+          <button
             className="expand-btn"
             onClick={() => setIsExpanded(!isExpanded)}
           >
             {isExpanded ? '▼' : '▶'}
           </button>
-          <h4>{getComponentName(component.type)}</h4>
+            <h4 className={component.type === 'soundtrack' ? 'reload-title' : ''}>
+              {getComponentName(component.type)}
+            </h4>
         </div>
-        <button 
+        <button
           className="delete-component-btn"
           onClick={() => onDelete(componentId)}
         >
@@ -899,7 +901,10 @@ const ReferenciasVisualesComponent = ({ data, onUpdate, componentId }) => {
 }
 
 // Componente para Soundtrack
+// Componente para Soundtrack (SUNO Version)
 const SoundtrackComponent = ({ data, onUpdate, componentId }) => {
+  const [selectedTrack, setSelectedTrack] = useState(null)
+
   const handleItemChange = (index, field, value) => {
     const newItems = [...data.items]
     newItems[index] = { ...newItems[index], [field]: value }
@@ -907,7 +912,24 @@ const SoundtrackComponent = ({ data, onUpdate, componentId }) => {
   }
 
   const addItem = () => {
-    onUpdate(componentId, { items: [...data.items, { titulo: '', artista: '', momento: '' }] })
+    onUpdate(componentId, { 
+      items: [...data.items, { 
+        titulo: '', 
+        prompt: '', 
+        tags: [], 
+        version: 'v4.5',
+        duracion: '3:30',
+        sunoUrl: '',
+        bpm: '',
+        key: '',
+        momento: '',
+        notas: '',
+        estructura: [],
+        cuePoints: [],
+        energia: 50,
+        intensidad: 50
+      }] 
+    })
   }
 
   const removeItem = (index) => {
@@ -915,34 +937,340 @@ const SoundtrackComponent = ({ data, onUpdate, componentId }) => {
     onUpdate(componentId, { items: newItems })
   }
 
+  const addTag = (trackIndex, tag) => {
+    if (!tag.trim()) return
+    const newItems = [...data.items]
+    if (!newItems[trackIndex].tags) newItems[trackIndex].tags = []
+    if (!newItems[trackIndex].tags.includes(tag)) {
+      newItems[trackIndex].tags.push(tag)
+      onUpdate(componentId, { items: newItems })
+    }
+  }
+
+  const removeTag = (trackIndex, tagIndex) => {
+    const newItems = [...data.items]
+    newItems[trackIndex].tags.splice(tagIndex, 1)
+    onUpdate(componentId, { items: newItems })
+  }
+
+  const addCuePoint = (trackIndex) => {
+    const newItems = [...data.items]
+    if (!newItems[trackIndex].cuePoints) newItems[trackIndex].cuePoints = []
+    newItems[trackIndex].cuePoints.push({
+      tiempo: '0:00',
+      etiqueta: '',
+      tipo: 'general',
+      color: '#00d4ff'
+    })
+    onUpdate(componentId, { items: newItems })
+  }
+
+  const updateCuePoint = (trackIndex, cueIndex, field, value) => {
+    const newItems = [...data.items]
+    newItems[trackIndex].cuePoints[cueIndex][field] = value
+    onUpdate(componentId, { items: newItems })
+  }
+
+  const removeCuePoint = (trackIndex, cueIndex) => {
+    const newItems = [...data.items]
+    newItems[trackIndex].cuePoints.splice(cueIndex, 1)
+    onUpdate(componentId, { items: newItems })
+  }
+
+  const addEstructura = (trackIndex) => {
+    const newItems = [...data.items]
+    if (!newItems[trackIndex].estructura) newItems[trackIndex].estructura = []
+    newItems[trackIndex].estructura.push({
+      seccion: 'Intro',
+      inicio: '0:00',
+      fin: '0:16',
+      descripcion: ''
+    })
+    onUpdate(componentId, { items: newItems })
+  }
+
+  const updateEstructura = (trackIndex, estructuraIndex, field, value) => {
+    const newItems = [...data.items]
+    newItems[trackIndex].estructura[estructuraIndex][field] = value
+    onUpdate(componentId, { items: newItems })
+  }
+
+  const removeEstructura = (trackIndex, estructuraIndex) => {
+    const newItems = [...data.items]
+    newItems[trackIndex].estructura.splice(estructuraIndex, 1)
+    onUpdate(componentId, { items: newItems })
+  }
+
+  const getGenreColor = (tags) => {
+    if (!tags || tags.length === 0) return '#00d4ff'
+    const tag = tags[0].toLowerCase()
+    if (tag.includes('psytrance') || tag.includes('trance')) return '#ff6600'
+    if (tag.includes('edm') || tag.includes('electronic')) return '#00ff41'
+    if (tag.includes('ambient') || tag.includes('chill')) return '#ffd700'
+    if (tag.includes('techno') || tag.includes('house')) return '#ff3333'
+    if (tag.includes('cyberpunk') || tag.includes('cyber')) return '#ff0080'
+    return '#00d4ff'
+  }
+
+  const cueTypes = [
+    { value: 'intro', label: 'Intro', color: '#00d4ff' },
+    { value: 'drop', label: 'Drop', color: '#ff3333' },
+    { value: 'buildup', label: 'Build-up', color: '#ff6600' },
+    { value: 'breakdown', label: 'Breakdown', color: '#ffd700' },
+    { value: 'outro', label: 'Outro', color: '#ff0080' },
+    { value: 'vocal', label: 'Vocal', color: '#00ff41' },
+    { value: 'instrumental', label: 'Instrumental', color: '#ffffff' },
+    { value: 'bridge', label: 'Bridge', color: '#cc00ff' }
+  ]
+
+  const estructuraTipos = ['Intro', 'Verse', 'Pre-Chorus', 'Chorus', 'Drop', 'Break', 'Bridge', 'Outro', 'Build-up', 'Breakdown']
+
   return (
-    <div className="soundtrack-component">
-      {data.items.map((item, index) => (
-        <div key={index} className="soundtrack-item">
-          <div className="soundtrack-header">
-            <input
-              type="text"
-              value={item.titulo}
-              onChange={(e) => handleItemChange(index, 'titulo', e.target.value)}
-              placeholder="Título de la canción"
-            />
-            <input
-              type="text"
-              value={item.artista}
-              onChange={(e) => handleItemChange(index, 'artista', e.target.value)}
-              placeholder="Artista"
-            />
-            <button onClick={() => removeItem(index)} className="remove-btn">×</button>
+    <div className="suno-soundtrack-component">
+      {data.items.map((track, trackIndex) => (
+        <div key={trackIndex} className="suno-track-item" style={{ borderLeft: `4px solid ${getGenreColor(track.tags)}` }}>
+          
+          {/* Header del Track */}
+          <div className="track-header">
+            <div className="track-main-info">
+              <input
+                type="text"
+                value={track.titulo}
+                onChange={(e) => handleItemChange(trackIndex, 'titulo', e.target.value)}
+                placeholder="Título de la canción"
+                className="track-title-input"
+              />
+              <div className="track-meta">
+                <input
+                  type="text"
+                  value={track.duracion}
+                  onChange={(e) => handleItemChange(trackIndex, 'duracion', e.target.value)}
+                  placeholder="3:30"
+                  className="duration-input"
+                />
+                <select
+                  value={track.version}
+                  onChange={(e) => handleItemChange(trackIndex, 'version', e.target.value)}
+                  className="version-select"
+                >
+                  <option value="v4.5">v4.5</option>
+                  <option value="v4.0">v4.0</option>
+                  <option value="v3.5">v3.5</option>
+                </select>
+              </div>
+            </div>
+            <button onClick={() => removeItem(trackIndex)} className="remove-btn">×</button>
           </div>
-          <input
-            type="text"
-            value={item.momento}
-            onChange={(e) => handleItemChange(index, 'momento', e.target.value)}
-            placeholder="Momento específico del capítulo"
-          />
+
+          {/* Información Técnica */}
+          <div className="track-technical">
+            <div className="tech-row">
+              <input
+                type="text"
+                value={track.bpm}
+                onChange={(e) => handleItemChange(trackIndex, 'bpm', e.target.value)}
+                placeholder="BPM"
+                className="bpm-input"
+              />
+              <input
+                type="text"
+                value={track.key}
+                onChange={(e) => handleItemChange(trackIndex, 'key', e.target.value)}
+                placeholder="Key (Ej: Am, C#)"
+                className="key-input"
+              />
+              <input
+                type="url"
+                value={track.sunoUrl}
+                onChange={(e) => handleItemChange(trackIndex, 'sunoUrl', e.target.value)}
+                placeholder="https://suno.com/song/..."
+                className="suno-url-input"
+              />
+            </div>
+          </div>
+
+          {/* Prompt de Suno */}
+          <div className="prompt-section">
+            <label>Prompt utilizado en Suno:</label>
+            <textarea
+              value={track.prompt}
+              onChange={(e) => handleItemChange(trackIndex, 'prompt', e.target.value)}
+              placeholder="Ingresa el prompt que usaste en Suno AI..."
+              rows={3}
+              className="prompt-textarea"
+            />
+          </div>
+
+          {/* Tags/Géneros */}
+          <div className="tags-section">
+            <label>Tags & Géneros:</label>
+            <div className="tags-container">
+              {track.tags && track.tags.map((tag, tagIndex) => (
+                <span key={tagIndex} className="tag-chip" style={{ borderColor: getGenreColor([tag]) }}>
+                  {tag}
+                  <button onClick={() => removeTag(trackIndex, tagIndex)} className="tag-remove">×</button>
+                </span>
+              ))}
+              <input
+                type="text"
+                placeholder="Agregar tag..."
+                className="tag-input"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    addTag(trackIndex, e.target.value)
+                    e.target.value = ''
+                  }
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Controles de Energía e Intensidad */}
+          <div className="energy-controls">
+            <div className="energy-slider">
+              <label>Energía: {track.energia}%</label>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={track.energia || 50}
+                onChange={(e) => handleItemChange(trackIndex, 'energia', e.target.value)}
+                className="slider energia-slider"
+              />
+            </div>
+            <div className="intensity-slider">
+              <label>Intensidad: {track.intensidad}%</label>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={track.intensidad || 50}
+                onChange={(e) => handleItemChange(trackIndex, 'intensidad', e.target.value)}
+                className="slider intensity-slider"
+              />
+            </div>
+          </div>
+
+          {/* Estructura Musical */}
+          <div className="estructura-section">
+            <div className="section-header">
+              <label>Estructura Musical:</label>
+              <button onClick={() => addEstructura(trackIndex)} className="add-small-btn">+ Sección</button>
+            </div>
+            {track.estructura && track.estructura.map((seccion, seccionIndex) => (
+              <div key={seccionIndex} className="estructura-item">
+                <select
+                  value={seccion.seccion}
+                  onChange={(e) => updateEstructura(trackIndex, seccionIndex, 'seccion', e.target.value)}
+                  className="estructura-select"
+                >
+                  {estructuraTipos.map(tipo => (
+                    <option key={tipo} value={tipo}>{tipo}</option>
+                  ))}
+                </select>
+                <input
+                  type="text"
+                  value={seccion.inicio}
+                  onChange={(e) => updateEstructura(trackIndex, seccionIndex, 'inicio', e.target.value)}
+                  placeholder="0:00"
+                  className="time-input"
+                />
+                <span>-</span>
+                <input
+                  type="text"
+                  value={seccion.fin}
+                  onChange={(e) => updateEstructura(trackIndex, seccionIndex, 'fin', e.target.value)}
+                  placeholder="0:16"
+                  className="time-input"
+                />
+                <input
+                  type="text"
+                  value={seccion.descripcion}
+                  onChange={(e) => updateEstructura(trackIndex, seccionIndex, 'descripcion', e.target.value)}
+                  placeholder="Descripción..."
+                  className="descripcion-input"
+                />
+                <button onClick={() => removeEstructura(trackIndex, seccionIndex)} className="remove-small-btn">×</button>
+              </div>
+            ))}
+          </div>
+
+          {/* Cue Points */}
+          <div className="cue-points-section">
+            <div className="section-header">
+              <label>Cue Points (para DJ/Mixing):</label>
+              <button onClick={() => addCuePoint(trackIndex)} className="add-small-btn">+ Cue Point</button>
+            </div>
+            {track.cuePoints && track.cuePoints.map((cue, cueIndex) => (
+              <div key={cueIndex} className="cue-point-item">
+                <input
+                  type="text"
+                  value={cue.tiempo}
+                  onChange={(e) => updateCuePoint(trackIndex, cueIndex, 'tiempo', e.target.value)}
+                  placeholder="1:23"
+                  className="time-input"
+                />
+                <select
+                  value={cue.tipo}
+                  onChange={(e) => {
+                    updateCuePoint(trackIndex, cueIndex, 'tipo', e.target.value)
+                    const selectedType = cueTypes.find(t => t.value === e.target.value)
+                    if (selectedType) {
+                      updateCuePoint(trackIndex, cueIndex, 'color', selectedType.color)
+                    }
+                  }}
+                  className="cue-type-select"
+                >
+                  {cueTypes.map(type => (
+                    <option key={type.value} value={type.value}>{type.label}</option>
+                  ))}
+                </select>
+                <input
+                  type="text"
+                  value={cue.etiqueta}
+                  onChange={(e) => updateCuePoint(trackIndex, cueIndex, 'etiqueta', e.target.value)}
+                  placeholder="Etiqueta del cue..."
+                  className="cue-label-input"
+                />
+                <div 
+                  className="cue-color-indicator" 
+                  style={{ backgroundColor: cue.color || '#00d4ff' }}
+                ></div>
+                <button onClick={() => removeCuePoint(trackIndex, cueIndex)} className="remove-small-btn">×</button>
+              </div>
+            ))}
+          </div>
+
+          {/* Momento Narrativo */}
+          <div className="narrative-section">
+            <label>Momento Narrativo:</label>
+            <input
+              type="text"
+              value={track.momento}
+              onChange={(e) => handleItemChange(trackIndex, 'momento', e.target.value)}
+              placeholder="Cuándo se usa en la historia..."
+              className="momento-input"
+            />
+          </div>
+
+          {/* Notas y Variaciones */}
+          <div className="notes-section">
+            <label>Notas & Variaciones:</label>
+            <textarea
+              value={track.notas}
+              onChange={(e) => handleItemChange(trackIndex, 'notas', e.target.value)}
+              placeholder="Notas sobre iteraciones, cambios, ideas para remix..."
+              rows={2}
+              className="notes-textarea"
+            />
+          </div>
+
         </div>
       ))}
-      <button onClick={addItem} className="add-btn">+ Agregar canción</button>
+      
+      <button onClick={addItem} className="add-btn">
+        🎵 + Agregar Track de Suno
+      </button>
     </div>
   )
 }

@@ -107,8 +107,24 @@ const CharacterDetail = ({ item, onSave, onDelete, onCancel }) => {
       case 'referencias_visuales':
         return { items: [''] }
       case 'soundtrack':
-        return { items: [{ titulo: '', artista: '', momento: '' }] }
-      
+        return { 
+          items: [{
+            titulo: '',
+            prompt: '',
+            tags: [],
+            version: 'v4.5',
+            duracion: '3:30',
+            sunoUrl: '',
+            bpm: '',
+            key: '',
+            momento: '',
+            notas: '',
+            estructura: [],
+            cuePoints: [],
+            energia: 50,
+            intensidad: 50
+          }]
+        }
       default:
         return {}
     }
