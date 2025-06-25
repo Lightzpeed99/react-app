@@ -66,6 +66,70 @@
   color: var(--text-secondary);
   font-size: 16px;
   margin-top: 8px;
+  margin-bottom: 24px;
+}
+
+/* NUEVOS ESTILOS PARA BOTONES EXPORT/IMPORT */
+.dictionary-tools {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+.dict-tool-btn {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(0, 0, 0, 0.3) 100%);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  color: var(--secondary-gold);
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  box-shadow: 
+    0 0 20px rgba(255, 215, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  min-width: 180px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dict-tool-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.dict-tool-btn:hover::before {
+  left: 100%;
+}
+
+.dict-tool-btn:hover {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(0, 0, 0, 0.4) 100%);
+  border-color: var(--secondary-gold);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 25px rgba(255, 215, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.file-input-label {
+  cursor: pointer;
+  display: inline-block;
 }
 
 /* Grid de categorías */
@@ -348,7 +412,7 @@
 }
 
 .category-header {
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .category-header h4 {
@@ -359,6 +423,7 @@
   letter-spacing: 0.5px;
   cursor: pointer;
   transition: color 0.3s ease;
+  margin: 0;
 }
 
 .current-category .category-header h4 {
@@ -382,29 +447,116 @@
   width: 100%;
 }
 
-.categories-grid-modal textarea {
-  width: 100%;
+/* NUEVOS ESTILOS PARA SISTEMA DE BADGES */
+.word-badges-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.badges-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(0, 212, 255, 0.1);
+}
+
+.word-badge {
+  background: rgba(0, 212, 255, 0.1);
+  border: 1px solid;
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: inherit;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  animation: badgeIn 0.3s ease-out;
+}
+
+@keyframes badgeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.word-badge:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(0, 212, 255, 0.2);
+}
+
+.badge-remove {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 14px;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.badge-remove:hover {
+  opacity: 1;
+  background: rgba(255, 51, 51, 0.2);
+  color: #ff3333;
+}
+
+.word-input {
   background: rgba(0, 212, 255, 0.05);
   border: 1px solid rgba(0, 212, 255, 0.2);
   border-radius: 8px;
-  padding: 12px;
+  padding: 12px 16px;
   color: #ffffff;
-  font-size: 13px;
-  line-height: 1.5;
-  resize: vertical;
+  font-size: 14px;
   transition: all 0.3s ease;
+  width: 100%;
 }
 
-.categories-grid-modal textarea:focus {
+.word-input:focus {
   outline: none;
   border-color: var(--primary-blue);
   box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.2);
   background: rgba(0, 212, 255, 0.1);
 }
 
-.categories-grid-modal textarea::placeholder {
+.word-input::placeholder {
   color: rgba(255, 255, 255, 0.4);
   font-size: 12px;
+}
+
+/* Estilo especial para categoría actual */
+.current-input {
+  background: rgba(255, 215, 0, 0.05);
+  border-color: rgba(255, 215, 0, 0.3);
+}
+
+.current-input:focus {
+  border-color: var(--secondary-gold);
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.2);
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.current-category .badges-grid {
+  background: rgba(255, 215, 0, 0.05);
+  border-color: rgba(255, 215, 0, 0.2);
 }
 
 /* Modal para nueva categoría */
@@ -501,6 +653,15 @@
     font-size: 28px;
   }
   
+  .dictionary-tools {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .dict-tool-btn {
+    min-width: 240px;
+  }
+  
   .categories-grid {
     grid-template-columns: 1fr;
     gap: 20px;
@@ -557,5 +718,14 @@
   
   .modal-buttons .btn {
     width: 100%;
+  }
+  
+  .badges-grid {
+    gap: 6px;
+  }
+  
+  .word-badge {
+    font-size: 11px;
+    padding: 3px 8px;
   }
 }

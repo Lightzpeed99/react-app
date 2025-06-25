@@ -35,7 +35,6 @@
   transform: translateX(4px);
 }
 
-/* PUNTO 1: Arreglo del título ReloadXPs - removido background que interfería */
 .nav-brand h1 {
   font-size: 28px;
   font-weight: 800;
@@ -44,7 +43,6 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin: 0;
-  /* Removido animation: glow que causaba el background */
   text-shadow: 0 0 30px rgba(0, 212, 255, 0.6), 0 0 60px rgba(0, 255, 65, 0.4);
   filter: drop-shadow(0 0 10px rgba(255, 102, 0, 0.3));
 }
@@ -64,18 +62,68 @@
   gap: 16px;
 }
 
-/* PUNTO 3: Rediseño de botones para armonizar con CREAR */
 .nav-tools {
   display: flex;
   gap: 12px;
+  align-items: center;
 }
 
-/* Nuevo estilo para botones de herramientas - más tecnológico */
+/* BOTÓN CREAR - Alineación perfecta */
+.nav-actions .btn.blue {
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+  color: #000;
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  box-shadow: 
+    0 0 20px rgba(0, 212, 255, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  min-width: 120px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  line-height: 1;
+}
+
+.nav-actions .btn.blue::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s;
+}
+
+.nav-actions .btn.blue:hover::before {
+  left: 100%;
+}
+
+.nav-actions .btn.blue:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 25px rgba(0, 212, 255, 0.5),
+    0 0 40px rgba(0, 212, 255, 0.3);
+  text-shadow: 0 0 10px rgba(0, 212, 255, 0.8);
+}
+
+/* BOTONES DE HERRAMIENTAS - Alineación perfecta */
 .nav-tool-btn {
   background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 0, 0, 0.3) 100%);
   border: 1px solid rgba(0, 212, 255, 0.3);
   color: var(--primary-blue);
-  padding: 12px 24px;
   border-radius: 8px;
   font-weight: 600;
   font-size: 14px;
@@ -94,6 +142,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0;
+  margin: 0;
+  line-height: 1;
 }
 
 .nav-tool-btn::before {
@@ -121,10 +172,12 @@
   color: #ffffff;
 }
 
-/* Estilo especial para el input file */
+/* Input file label */
 .file-input-label {
   cursor: pointer;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Efectos adicionales para navegación */
@@ -139,7 +192,6 @@
   opacity: 0.5;
 }
 
-/* Efectos tecnológicos adicionales */
 .navigation::after {
   content: '';
   position: absolute;
@@ -151,6 +203,7 @@
   opacity: 0.3;
 }
 
+/* Responsive */
 @media (max-width: 768px) {
   .navigation {
     padding: 12px 16px;
@@ -168,8 +221,13 @@
     font-size: 24px;
   }
   
-  .nav-tool-btn {
-    padding: 10px 16px;
-    font-size: 11px;
+  .nav-tool-btn,
+  .nav-actions .btn.blue {
+    font-size: 12px;
+    min-width: 100px;
+    height: 40px;
+    padding: 0;
+    margin: 0;
+    line-height: 1;
   }
 }
