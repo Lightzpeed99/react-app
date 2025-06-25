@@ -6,6 +6,7 @@ const Navigation = ({
   onCreateItem, 
   onExportData, 
   onImportData, 
+  onGoToDictionary,
   currentView 
 }) => {
   return (
@@ -45,6 +46,13 @@ const Navigation = ({
               style={{ display: 'none' }}
             />
           </label>
+
+          <button 
+            className="nav-tool-btn"
+            onClick={onGoToDictionary}
+          >
+            📚 Diccionario
+          </button>
         </div>
       </div>
     </nav>

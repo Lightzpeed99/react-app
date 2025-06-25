@@ -901,7 +901,6 @@ const ReferenciasVisualesComponent = ({ data, onUpdate, componentId }) => {
 }
 
 // Componente para Soundtrack
-// Componente para Soundtrack (SUNO Version)
 const SoundtrackComponent = ({ data, onUpdate, componentId }) => {
   const [selectedTrack, setSelectedTrack] = useState(null)
 
@@ -914,20 +913,27 @@ const SoundtrackComponent = ({ data, onUpdate, componentId }) => {
   const addItem = () => {
     onUpdate(componentId, { 
       items: [...data.items, { 
-        titulo: '', 
-        prompt: '', 
-        tags: [], 
+        // Campos en orden de Suno
+        songTitle: '',
+        lyrics: '', 
+        styleDescription: '',
+        excludedStyle: '',
+        weirdness: 50,
+        styleInfluence: 50,
+        
+        // Campos técnicos existentes
         version: 'v4.5',
         duracion: '3:30',
         sunoUrl: '',
         bpm: '',
         key: '',
+        tags: [], 
+        
+        // Campos narrativos existentes
         momento: '',
         notas: '',
         estructura: [],
         cuePoints: [],
-        energia: 50,
-        intensidad: 50
       }] 
     })
   }
@@ -1012,6 +1018,13 @@ const SoundtrackComponent = ({ data, onUpdate, componentId }) => {
     return '#00d4ff'
   }
 
+  const getCharCount = (text, limit) => {
+    const count = text ? text.length : 0
+    const remaining = limit - count
+    const isOverLimit = count > limit
+    return { count, remaining, isOverLimit }
+  }
+
   const cueTypes = [
     { value: 'intro', label: 'Intro', color: '#00d4ff' },
     { value: 'drop', label: 'Drop', color: '#ff3333' },
@@ -1030,78 +1043,145 @@ const SoundtrackComponent = ({ data, onUpdate, componentId }) => {
       {data.items.map((track, trackIndex) => (
         <div key={trackIndex} className="suno-track-item" style={{ borderLeft: `4px solid ${getGenreColor(track.tags)}` }}>
           
-          {/* Header del Track */}
-          <div className="track-header">
-            <div className="track-main-info">
-              <input
-                type="text"
-                value={track.titulo}
-                onChange={(e) => handleItemChange(trackIndex, 'titulo', e.target.value)}
-                placeholder="Título de la canción"
-                className="track-title-input"
-              />
-              <div className="track-meta">
-                <input
-                  type="text"
-                  value={track.duracion}
-                  onChange={(e) => handleItemChange(trackIndex, 'duracion', e.target.value)}
-                  placeholder="3:30"
-                  className="duration-input"
-                />
-                <select
-                  value={track.version}
-                  onChange={(e) => handleItemChange(trackIndex, 'version', e.target.value)}
-                  className="version-select"
-                >
-                  <option value="v4.5">v4.5</option>
-                  <option value="v4.0">v4.0</option>
-                  <option value="v3.5">v3.5</option>
-                </select>
-              </div>
-            </div>
-            <button onClick={() => removeItem(trackIndex)} className="remove-btn">×</button>
+          {/* 1. SONG TITLE */}
+          <div className="suno-field-section">
+            <label>Song Title:</label>
+            <input
+              type="text"
+              value={track.songTitle || ''}
+              onChange={(e) => handleItemChange(trackIndex, 'songTitle', e.target.value)}
+              placeholder="Enter song title"
+              className="song-title-input"
+            />
           </div>
 
-          {/* Información Técnica */}
+          {/* 2. LYRICS */}
+          <div className="suno-field-section">
+            <label>
+              Lyrics: 
+              <span className={`char-counter ${getCharCount(track.lyrics, 5000).isOverLimit ? 'over-limit' : ''}`}>
+                {getCharCount(track.lyrics, 5000).count}/5000 
+                ({getCharCount(track.lyrics, 5000).remaining} restantes)
+              </span>
+            </label>
+            <textarea
+              value={track.lyrics || ''}
+              onChange={(e) => handleItemChange(trackIndex, 'lyrics', e.target.value)}
+              placeholder="Add your own lyrics here"
+              rows={8}
+              className="lyrics-textarea"
+              maxLength={5000}
+            />
+          </div>
+
+          {/* 3. STYLE DESCRIPTION */}
+          <div className="suno-field-section">
+            <label>
+              Style Description: 
+              <span className={`char-counter ${getCharCount(track.styleDescription, 1000).isOverLimit ? 'over-limit' : ''}`}>
+                {getCharCount(track.styleDescription, 1000).count}/1000 
+                ({getCharCount(track.styleDescription, 1000).remaining} restantes)
+              </span>
+            </label>
+            <textarea
+              value={track.styleDescription || ''}
+              onChange={(e) => handleItemChange(trackIndex, 'styleDescription', e.target.value)}
+              placeholder="Enter style description"
+              rows={4}
+              className="style-description-textarea"
+              maxLength={1000}
+            />
+          </div>
+
+          {/* 4. EXCLUDED STYLE */}
+          <div className="suno-field-section">
+            <label>
+              Exclude Styles: 
+              <span className={`char-counter ${getCharCount(track.excludedStyle, 1000).isOverLimit ? 'over-limit' : ''}`}>
+                {getCharCount(track.excludedStyle, 1000).count}/1000 
+                ({getCharCount(track.excludedStyle, 1000).remaining} restantes)
+              </span>
+            </label>
+            <textarea
+              value={track.excludedStyle || ''}
+              onChange={(e) => handleItemChange(trackIndex, 'excludedStyle', e.target.value)}
+              placeholder="Exclude styles"
+              rows={3}
+              className="excluded-style-textarea"
+              maxLength={1000}
+            />
+          </div>
+
+          {/* 5. WEIRDNESS Y STYLE INFLUENCE SLIDERS */}
+          <div className="suno-sliders-section">
+            <div className="slider-group">
+              <label>Weirdness: {track.weirdness || 50}%</label>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={track.weirdness || 50}
+                onChange={(e) => handleItemChange(trackIndex, 'weirdness', e.target.value)}
+                className="slider weirdness-slider"
+              />
+            </div>
+            <div className="slider-group">
+              <label>Style Influence: {track.styleInfluence || 50}%</label>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={track.styleInfluence || 50}
+                onChange={(e) => handleItemChange(trackIndex, 'styleInfluence', e.target.value)}
+                className="slider style-influence-slider"
+              />
+            </div>
+          </div>
+
+          {/* INFORMACIÓN TÉCNICA */}
           <div className="track-technical">
             <div className="tech-row">
               <input
                 type="text"
-                value={track.bpm}
+                value={track.bpm || ''}
                 onChange={(e) => handleItemChange(trackIndex, 'bpm', e.target.value)}
                 placeholder="BPM"
                 className="bpm-input"
               />
               <input
                 type="text"
-                value={track.key}
+                value={track.key || ''}
                 onChange={(e) => handleItemChange(trackIndex, 'key', e.target.value)}
                 placeholder="Key (Ej: Am, C#)"
                 className="key-input"
               />
               <input
-                type="url"
-                value={track.sunoUrl}
-                onChange={(e) => handleItemChange(trackIndex, 'sunoUrl', e.target.value)}
-                placeholder="https://suno.com/song/..."
-                className="suno-url-input"
+                type="text"
+                value={track.duracion || '3:30'}
+                onChange={(e) => handleItemChange(trackIndex, 'duracion', e.target.value)}
+                placeholder="3:30"
+                className="duration-input"
               />
+              <select
+                value={track.version || 'v4.5'}
+                onChange={(e) => handleItemChange(trackIndex, 'version', e.target.value)}
+                className="version-select"
+              >
+                <option value="v4.5">v4.5</option>
+                <option value="v4.0">v4.0</option>
+                <option value="v3.5">v3.5</option>
+              </select>
             </div>
-          </div>
-
-          {/* Prompt de Suno */}
-          <div className="prompt-section">
-            <label>Prompt utilizado en Suno:</label>
-            <textarea
-              value={track.prompt}
-              onChange={(e) => handleItemChange(trackIndex, 'prompt', e.target.value)}
-              placeholder="Ingresa el prompt que usaste en Suno AI..."
-              rows={3}
-              className="prompt-textarea"
+            <input
+              type="url"
+              value={track.sunoUrl || ''}
+              onChange={(e) => handleItemChange(trackIndex, 'sunoUrl', e.target.value)}
+              placeholder="https://suno.com/song/..."
+              className="suno-url-input"
             />
           </div>
 
-          {/* Tags/Géneros */}
+          {/* TAGS/GÉNEROS */}
           <div className="tags-section">
             <label>Tags & Géneros:</label>
             <div className="tags-container">
@@ -1125,33 +1205,7 @@ const SoundtrackComponent = ({ data, onUpdate, componentId }) => {
             </div>
           </div>
 
-          {/* Controles de Energía e Intensidad */}
-          <div className="energy-controls">
-            <div className="energy-slider">
-              <label>Energía: {track.energia}%</label>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={track.energia || 50}
-                onChange={(e) => handleItemChange(trackIndex, 'energia', e.target.value)}
-                className="slider energia-slider"
-              />
-            </div>
-            <div className="intensity-slider">
-              <label>Intensidad: {track.intensidad}%</label>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={track.intensidad || 50}
-                onChange={(e) => handleItemChange(trackIndex, 'intensidad', e.target.value)}
-                className="slider intensity-slider"
-              />
-            </div>
-          </div>
-
-          {/* Estructura Musical */}
+          {/* ESTRUCTURA MUSICAL */}
           <div className="estructura-section">
             <div className="section-header">
               <label>Estructura Musical:</label>
@@ -1195,7 +1249,7 @@ const SoundtrackComponent = ({ data, onUpdate, componentId }) => {
             ))}
           </div>
 
-          {/* Cue Points */}
+          {/* CUE POINTS */}
           <div className="cue-points-section">
             <div className="section-header">
               <label>Cue Points (para DJ/Mixing):</label>
@@ -1241,28 +1295,35 @@ const SoundtrackComponent = ({ data, onUpdate, componentId }) => {
             ))}
           </div>
 
-          {/* Momento Narrativo */}
+          {/* MOMENTO NARRATIVO */}
           <div className="narrative-section">
             <label>Momento Narrativo:</label>
             <input
               type="text"
-              value={track.momento}
+              value={track.momento || ''}
               onChange={(e) => handleItemChange(trackIndex, 'momento', e.target.value)}
               placeholder="Cuándo se usa en la historia..."
               className="momento-input"
             />
           </div>
 
-          {/* Notas y Variaciones */}
+          {/* NOTAS Y VARIACIONES */}
           <div className="notes-section">
             <label>Notas & Variaciones:</label>
             <textarea
-              value={track.notas}
+              value={track.notas || ''}
               onChange={(e) => handleItemChange(trackIndex, 'notas', e.target.value)}
               placeholder="Notas sobre iteraciones, cambios, ideas para remix..."
               rows={2}
               className="notes-textarea"
             />
+          </div>
+
+          {/* BOTÓN ELIMINAR TRACK */}
+          <div className="track-actions">
+            <button onClick={() => removeItem(trackIndex)} className="remove-btn">
+              🗑️ Eliminar Track
+            </button>
           </div>
 
         </div>

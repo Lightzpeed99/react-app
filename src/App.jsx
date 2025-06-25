@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import './App.css'
 import CharacterCatalog from './components/CharacterCatalog'
 import CharacterDetail from './components/CharacterDetail'
+import DictionaryView from './components/DictionaryView'
 import Navigation from './components/Navigation'
 
 function App() {
@@ -83,31 +84,60 @@ function App() {
     }
   }
 
-  return (
-    <div className="app">
-      <Navigation 
-        onHome={() => setCurrentView('catalog')}
-        onCreateItem={handleCreateItem}
-        onExportData={handleExportData}
-        onImportData={handleImportData}
-        currentView={currentView}
-      />
-      
-      <main className="main-content">
-        {currentView === 'catalog' ? (
+  const handleGoToDictionary = () => {
+    setCurrentView('dictionary')
+  }
+
+  const handleGoHome = () => {
+    setCurrentView('catalog')
+    setSelectedItem(null)
+  }
+
+  const renderCurrentView = () => {
+    switch (currentView) {
+      case 'catalog':
+        return (
           <CharacterCatalog 
             items={items}
             onViewItem={handleViewItem}
             onCreateItem={handleCreateItem}
           />
-        ) : (
+        )
+      case 'detail':
+        return (
           <CharacterDetail 
             item={selectedItem}
             onSave={handleSaveItem}
             onDelete={handleDeleteItem}
-            onCancel={() => setCurrentView('catalog')}
+            onCancel={handleGoHome}
           />
-        )}
+        )
+      case 'dictionary':
+        return <DictionaryView />
+      default:
+        return (
+          <CharacterCatalog 
+            items={items}
+            onViewItem={handleViewItem}
+            onCreateItem={handleCreateItem}
+          />
+        )
+    }
+  }
+
+  return (
+    <div className="app">
+      <Navigation 
+        onHome={handleGoHome}
+        onCreateItem={handleCreateItem}
+        onExportData={handleExportData}
+        onImportData={handleImportData}
+        onGoToDictionary={handleGoToDictionary}
+        currentView={currentView}
+      />
+      
+      <main className="main-content">
+        {renderCurrentView()}
       </main>
     </div>
   )
