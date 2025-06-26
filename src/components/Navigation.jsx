@@ -7,6 +7,7 @@ const Navigation = ({
   onExportData, 
   onImportData, 
   onGoToDictionary,
+  onGoToNotebook,
   currentView 
 }) => {
   return (
@@ -52,6 +53,13 @@ const Navigation = ({
             onClick={onGoToDictionary}
           >
             📚 Diccionario
+          </button>
+
+          <button 
+            className="nav-tool-btn"
+            onClick={onGoToNotebook}
+          >
+            📓 Libreta
           </button>
         </div>
       </div>

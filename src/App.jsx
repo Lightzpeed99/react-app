@@ -4,6 +4,7 @@ import './App.css'
 import CharacterCatalog from './components/CharacterCatalog'
 import CharacterDetail from './components/CharacterDetail'
 import DictionaryView from './components/DictionaryView'
+import NotebookView from './components/NotebookView'
 import Navigation from './components/Navigation'
 
 function App() {
@@ -88,6 +89,10 @@ function App() {
     setCurrentView('dictionary')
   }
 
+  const handleGoToNotebook = () => {
+    setCurrentView('notebook')
+  }
+
   const handleGoHome = () => {
     setCurrentView('catalog')
     setSelectedItem(null)
@@ -114,6 +119,8 @@ function App() {
         )
       case 'dictionary':
         return <DictionaryView />
+      case 'notebook':
+        return <NotebookView />
       default:
         return (
           <CharacterCatalog 
@@ -133,6 +140,7 @@ function App() {
         onExportData={handleExportData}
         onImportData={handleImportData}
         onGoToDictionary={handleGoToDictionary}
+        onGoToNotebook={handleGoToNotebook}
         currentView={currentView}
       />
       
