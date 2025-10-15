@@ -25,6 +25,7 @@ const SoundtrackDetail = ({ prompt, onBack, onEdit, onDelete }) => {
   // ==================== HOOKS ====================
   
   const {
+    createPrompt,      // ✅ AGREGAR AQUÍ
     updatePrompt,
     deletePrompt,
     duplicatePrompt,
@@ -52,6 +53,13 @@ const SoundtrackDetail = ({ prompt, onBack, onEdit, onDelete }) => {
     }
   }, [prompt, checkCharacterLimits])
 
+  // Activar modo edición automáticamente si no hay prompt (crear nuevo)
+  useEffect(() => {
+    if (!prompt) {
+      setIsEditMode(true)
+    }
+  }, [prompt])
+
   // ==================== HANDLERS ====================
 
   const handleEdit = () => {
@@ -61,7 +69,17 @@ const SoundtrackDetail = ({ prompt, onBack, onEdit, onDelete }) => {
 
   const handleCancelEdit = () => {
     setIsEditMode(false)
-    setCurrentPrompt(prompt)
+    
+    // Si estamos creando (no hay prompt original), volver al catálogo
+    if (!prompt) {
+      if (onBack) {
+        onBack()
+      }
+    } else {
+      // Si estamos editando, restaurar datos originales
+      setCurrentPrompt(prompt)
+    }
+    
     setError(null)
   }
 
@@ -76,13 +94,22 @@ const SoundtrackDetail = ({ prompt, onBack, onEdit, onDelete }) => {
         throw new Error(validation.errors.join(', '))
       }
 
-      // Actualizar en el service
-      const updated = await updatePrompt(currentPrompt.id, updatedData)
-      setCurrentPrompt(updated)
+      let savedPrompt;
+
+      if (currentPrompt && currentPrompt.id) {
+        // EDITAR: Actualizar prompt existente
+        savedPrompt = await updatePrompt(currentPrompt.id, updatedData)
+      } else {
+        // CREAR: Nuevo prompt
+        // ✅ CORRECCIÓN: Ya tenemos createPrompt del hook de arriba
+        savedPrompt = await createPrompt(updatedData)
+      }
+
+      setCurrentPrompt(savedPrompt)
       setIsEditMode(false)
 
       if (onEdit) {
-        onEdit(updated)
+        onEdit(savedPrompt)
       }
     } catch (err) {
       setError(err.message)
@@ -100,7 +127,7 @@ const SoundtrackDetail = ({ prompt, onBack, onEdit, onDelete }) => {
       const duplicated = await duplicatePrompt(currentPrompt.id)
       
       if (onEdit) {
-        onEdit(duplicated) // Navegar al duplicado
+        onEdit(duplicated)
       }
     } catch (err) {
       setError(`Error al duplicar: ${err.message}`)
@@ -157,7 +184,6 @@ const SoundtrackDetail = ({ prompt, onBack, onEdit, onDelete }) => {
 
   const handleCopyToClipboard = (text, label) => {
     navigator.clipboard.writeText(text).then(() => {
-      // Podría agregar un toast notification aquí
       console.log(`${label} copiado al portapapeles`)
     }).catch(err => {
       console.error('Error al copiar:', err)
@@ -167,7 +193,7 @@ const SoundtrackDetail = ({ prompt, onBack, onEdit, onDelete }) => {
   // ==================== HELPERS ====================
 
   const getGenreColor = () => {
-    if (!currentPrompt.tags || currentPrompt.tags.length === 0) return '#00d4ff'
+    if (!currentPrompt || !currentPrompt.tags || currentPrompt.tags.length === 0) return '#00d4ff'
     
     const tag = currentPrompt.tags[0].toLowerCase()
     
@@ -194,30 +220,19 @@ const SoundtrackDetail = ({ prompt, onBack, onEdit, onDelete }) => {
 
   // ==================== RENDER ====================
 
-  if (!currentPrompt) {
-    return (
-      <div className="soundtrack-detail error">
-        <div className="error-container">
-          <h2>Prompt no encontrado</h2>
-          <button className="btn secondary" onClick={onBack}>
-            Volver al catálogo
-          </button>
-        </div>
-      </div>
-    )
-  }
-
   const genreColor = getGenreColor()
 
-  // Si está en modo edición, mostrar el formulario
+  // MODO EDICIÓN/CREACIÓN: Mostrar formulario
   if (isEditMode) {
     return (
       <div className="soundtrack-detail edit-mode">
         <div className="detail-header">
           <button className="back-btn" onClick={handleCancelEdit}>
-            ← Cancelar Edición
+            ← Cancelar {currentPrompt ? 'Edición' : 'Creación'}
           </button>
-          <h2 className="detail-title">Editando Prompt</h2>
+          <h2 className="detail-title">
+            {currentPrompt ? 'Editando Prompt' : 'Creando Nuevo Prompt'}
+          </h2>
         </div>
 
         {error && (
@@ -238,7 +253,21 @@ const SoundtrackDetail = ({ prompt, onBack, onEdit, onDelete }) => {
     )
   }
 
-  // Modo lectura
+  // Si no hay prompt Y no está en modo edición, mostrar error
+  if (!currentPrompt) {
+    return (
+      <div className="soundtrack-detail error">
+        <div className="error-container">
+          <h2>Prompt no encontrado</h2>
+          <button className="btn secondary" onClick={onBack}>
+            Volver al catálogo
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // MODO LECTURA: Mostrar detalle completo
   return (
     <div className="soundtrack-detail" style={{ borderTopColor: genreColor }}>
       {/* HEADER */}
