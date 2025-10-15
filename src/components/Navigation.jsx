@@ -8,6 +8,7 @@ const Navigation = ({
   onImportData, 
   onGoToDictionary,
   onGoToNotebook,
+  onGoToSoundtrack,
   currentView 
 }) => {
   return (
@@ -60,6 +61,13 @@ const Navigation = ({
             onClick={onGoToNotebook}
           >
             📓 Libreta
+          </button>
+
+          <button 
+            className="nav-tool-btn"
+            onClick={onGoToSoundtrack}
+          >
+            🎵 Soundtrack
           </button>
         </div>
       </div>

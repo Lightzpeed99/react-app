@@ -6,11 +6,17 @@ import CharacterDetail from './components/CharacterDetail'
 import DictionaryView from './components/DictionaryView'
 import NotebookView from './components/NotebookView'
 import Navigation from './components/Navigation'
+import SoundtrackCatalog from './features/soundtrack/components/SoundtrackCatalog'
+import SoundtrackDetail from './features/soundtrack/components/SoundtrackDetail'
 
 function App() {
   const [currentView, setCurrentView] = useState('catalog')
   const [selectedItem, setSelectedItem] = useState(null)
   const [items, setItems] = useState([])
+
+  // Estados para Soundtrack
+  const [soundtrackView, setSoundtrackView] = useState('catalog') // 'catalog' | 'detail'
+  const [selectedPrompt, setSelectedPrompt] = useState(null)
 
   // Cargar items del localStorage al iniciar
   useEffect(() => {
@@ -98,6 +104,36 @@ function App() {
     setSelectedItem(null)
   }
 
+  // ==================== HANDLERS SOUNDTRACK ====================
+
+  const handleGoToSoundtrack = () => {
+    setCurrentView('soundtrack')
+    setSoundtrackView('catalog')
+    setSelectedPrompt(null)
+  }
+
+  const handleViewPromptDetail = (prompt) => {
+    setSelectedPrompt(prompt)
+    setSoundtrackView('detail')
+  }
+
+  const handleCreateNewPrompt = () => {
+    setSelectedPrompt(null)
+    setSoundtrackView('detail')
+  }
+
+  const handleBackToSoundtrackCatalog = () => {
+    setSoundtrackView('catalog')
+    setSelectedPrompt(null)
+  }
+
+  const handlePromptUpdated = () => {
+    setSoundtrackView('catalog')
+    setSelectedPrompt(null)
+  }
+
+  // ==================== RENDER VIEWS ====================
+
   const renderCurrentView = () => {
     switch (currentView) {
       case 'catalog':
@@ -121,6 +157,20 @@ function App() {
         return <DictionaryView />
       case 'notebook':
         return <NotebookView />
+      case 'soundtrack':
+        return soundtrackView === 'catalog' ? (
+          <SoundtrackCatalog
+            onViewDetail={handleViewPromptDetail}
+            onCreateNew={handleCreateNewPrompt}
+          />
+        ) : (
+          <SoundtrackDetail
+            prompt={selectedPrompt}
+            onBack={handleBackToSoundtrackCatalog}
+            onSave={handlePromptUpdated}
+            onDelete={handlePromptUpdated}
+          />
+        )
       default:
         return (
           <CharacterCatalog 
@@ -141,6 +191,7 @@ function App() {
         onImportData={handleImportData}
         onGoToDictionary={handleGoToDictionary}
         onGoToNotebook={handleGoToNotebook}
+        onGoToSoundtrack={handleGoToSoundtrack}
         currentView={currentView}
       />
       
