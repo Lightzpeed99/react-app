@@ -1,6 +1,6 @@
 // src/features/soundtrack/hooks/useSoundtrack.js
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import soundtrackService from "../../../services/SoundtrackService";
 
 /**
@@ -11,6 +11,8 @@ import soundtrackService from "../../../services/SoundtrackService";
  * - CRUD de ResultadoTrack + EstructuraTemporal + CuePoints + TagGenero
  * - CRUD de SeccionEstructura + VRPs (Lyrics)
  * - CRUD de Descriptors (StyleDescription)
+ * - Filtrado y búsqueda de prompts
+ * - Estadísticas
  * - Validaciones
  * - Gestión de estado (loading, error)
  *
@@ -23,6 +25,62 @@ const useSoundtrack = () => {
   const [prompts, setPrompts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // ⭐ NUEVOS: Estados para filtrado
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTags, setSelectedTags] = useState([]);
+  const [minRating, setMinRating] = useState(0);
+
+  // ==================== ⭐ FILTERED PROMPTS (COMPUTED) ====================
+
+  /**
+   * Filtrar prompts según criterios de búsqueda
+   * Se recalcula automáticamente cuando cambian: prompts, searchQuery, selectedTags, minRating
+   */
+  const filteredPrompts = useMemo(() => {
+    let filtered = [...prompts];
+
+    // Filtro 1: Búsqueda por texto
+    if (searchQuery && searchQuery.trim() !== "") {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter((prompt) => {
+        const searchableText = [
+          prompt.songTitle || "",
+          prompt.lyrics || "",
+          prompt.styleDescription || "",
+          prompt.excludedStyle || "",
+          ...(prompt.tags || []),
+        ]
+          .join(" ")
+          .toLowerCase();
+
+        return searchableText.includes(query);
+      });
+    }
+
+    // Filtro 2: Tags seleccionados
+    if (selectedTags && selectedTags.length > 0) {
+      filtered = filtered.filter((prompt) => {
+        if (!prompt.tags || prompt.tags.length === 0) return false;
+
+        // El prompt debe tener AL MENOS UNO de los tags seleccionados
+        return selectedTags.some((selectedTag) =>
+          prompt.tags.some(
+            (tag) => tag.toLowerCase() === selectedTag.toLowerCase()
+          )
+        );
+      });
+    }
+
+    // Filtro 3: Rating mínimo
+    if (minRating > 0) {
+      filtered = filtered.filter(
+        (prompt) => prompt.calificacion && prompt.calificacion >= minRating
+      );
+    }
+
+    return filtered;
+  }, [prompts, searchQuery, selectedTags, minRating]);
 
   // ==================== PROMPT CRUD (EXISTENTE) ====================
 
@@ -547,6 +605,23 @@ const useSoundtrack = () => {
     }
   }, []);
 
+  // ==================== ⭐ ESTADÍSTICAS ====================
+
+  const getStatistics = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const stats = await soundtrackService.getStatistics();
+      return stats;
+    } catch (err) {
+      setError(`Error al obtener estadísticas: ${err.message}`);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   // ==================== VALIDACIONES (EXISTENTES) ====================
 
   const validatePrompt = useCallback((promptData) => {
@@ -612,6 +687,15 @@ const useSoundtrack = () => {
     loading,
     error,
 
+    // ⭐ NUEVOS: Estados de filtrado
+    searchQuery,
+    setSearchQuery,
+    selectedTags,
+    setSelectedTags,
+    minRating,
+    setMinRating,
+    filteredPrompts, // ⭐ COMPUTED
+
     // Prompt CRUD
     getAllPrompts,
     getPromptById,
@@ -657,6 +741,9 @@ const useSoundtrack = () => {
     createOrUpdateDescriptor,
     updateDescriptor,
     deleteDescriptor,
+
+    // ⭐ Estadísticas
+    getStatistics,
 
     // Validaciones
     validatePrompt,
