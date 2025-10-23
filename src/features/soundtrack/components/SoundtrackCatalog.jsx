@@ -1,6 +1,6 @@
 // src/features/soundtrack/components/SoundtrackCatalog.jsx
 
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useSoundtrack } from '../hooks/useSoundtrack'
 import SoundtrackCard from './SoundtrackCard'
 import './SoundtrackCatalog.css'
@@ -34,10 +34,17 @@ const SoundtrackCatalog = ({ onViewDetail, onCreateNew }) => {
     minRating,
     setMinRating,
     filteredPrompts,
+    getAllPrompts,
     ratePrompt,
     duplicatePrompt,
     getStatistics
   } = useSoundtrack()
+
+// ==================== EFFECTS ====================
+
+useEffect(() => {
+  getAllPrompts();
+}, [getAllPrompts]);
 
   // ==================== ESTADOS LOCALES ====================
 
