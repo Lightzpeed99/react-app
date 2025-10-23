@@ -1,175 +1,125 @@
 // src/features/soundtrack/hooks/useSoundtrack.js
 
-import { useState, useEffect, useCallback } from "react";
-import { soundtrackService } from "../../../services/SoundtrackService";
+import { useState, useCallback } from "react";
+import soundtrackService from "../../../services/SoundtrackService";
 
 /**
- * useSoundtrack - Custom Hook para gestión de Prompts de Suno
+ * useSoundtrack - Hook personalizado para gestionar prompts de soundtrack
  *
- * RESPONSABILIDADES:
- * - Cargar prompts desde soundtrackService
- * - Gestionar estados de loading y errores
- * - CRUD completo de prompts
- * - Búsqueda y filtrado
- * - Duplicación de prompts
+ * FUNCIONALIDADES:
+ * - CRUD completo de Prompts
+ * - CRUD de ResultadoTrack + EstructuraTemporal + CuePoints + TagGenero
+ * - CRUD de SeccionEstructura + VRPs (Lyrics)
+ * - CRUD de Descriptors (StyleDescription)
+ * - Validaciones
+ * - Gestión de estado (loading, error)
  *
- * IMPORTANTE: NO toca localStorage directamente, usa soundtrackService
+ * @returns {Object} Métodos y estados para soundtrack
  */
 
-export const useSoundtrack = () => {
+const useSoundtrack = () => {
   // ==================== ESTADOS ====================
 
   const [prompts, setPrompts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedTags, setSelectedTags] = useState([]);
-  const [minRating, setMinRating] = useState(0);
 
-  // ==================== CARGAR PROMPTS ====================
+  // ==================== PROMPT CRUD (EXISTENTE) ====================
 
-  /**
-   * Cargar todos los prompts
-   */
-  const loadPrompts = useCallback(async () => {
+  const getAllPrompts = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
       const data = await soundtrackService.getAllPrompts();
       setPrompts(data);
+      return data;
     } catch (err) {
-      setError(`Error al cargar prompts: ${err.message}`);
-      console.error("Error loading prompts:", err);
+      setError(err.message);
+      throw err;
     } finally {
       setLoading(false);
     }
   }, []);
 
-  /**
-   * Cargar un prompt específico por ID
-   */
-  const loadPromptById = useCallback(async (id) => {
+  const getPromptById = useCallback(async (id) => {
     setLoading(true);
     setError(null);
 
     try {
-      const prompt = await soundtrackService.getPromptById(id);
-      return prompt;
+      const data = await soundtrackService.getPromptById(id);
+      return data;
     } catch (err) {
-      setError(`Error al cargar prompt: ${err.message}`);
-      console.error("Error loading prompt:", err);
-      return null;
+      setError(err.message);
+      throw err;
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // ==================== CRUD OPERATIONS ====================
-
-  /**
-   * Crear un nuevo prompt
-   * @param {Object} promptData - Datos del prompt
-   * @returns {Promise<Object>} Prompt creado
-   */
   const createPrompt = useCallback(async (promptData) => {
     setLoading(true);
     setError(null);
 
     try {
       const newPrompt = await soundtrackService.createPrompt(promptData);
-      setPrompts((prev) => [...prev, newPrompt]);
+      setPrompts((prev) => [newPrompt, ...prev]);
       return newPrompt;
     } catch (err) {
-      setError(`Error al crear prompt: ${err.message}`);
-      console.error("Error creating prompt:", err);
+      setError(err.message);
       throw err;
     } finally {
       setLoading(false);
     }
   }, []);
 
-  /**
-   * Actualizar un prompt existente
-   * @param {string|number} id - ID del prompt
-   * @param {Object} promptData - Datos actualizados
-   * @returns {Promise<Object>} Prompt actualizado
-   */
   const updatePrompt = useCallback(async (id, promptData) => {
     setLoading(true);
     setError(null);
 
     try {
-      const updatedPrompt = await soundtrackService.updatePrompt(
-        id,
-        promptData
-      );
-      setPrompts((prev) => prev.map((p) => (p.id === id ? updatedPrompt : p)));
-      return updatedPrompt;
+      const updated = await soundtrackService.updatePrompt(id, promptData);
+      setPrompts((prev) => prev.map((p) => (p.id === id ? updated : p)));
+      return updated;
     } catch (err) {
-      setError(`Error al actualizar prompt: ${err.message}`);
-      console.error("Error updating prompt:", err);
+      setError(err.message);
       throw err;
     } finally {
       setLoading(false);
     }
   }, []);
 
-  /**
-   * Eliminar un prompt
-   * @param {string|number} id - ID del prompt
-   * @returns {Promise<boolean>} true si se eliminó correctamente
-   */
   const deletePrompt = useCallback(async (id) => {
     setLoading(true);
     setError(null);
 
     try {
-      const success = await soundtrackService.deletePrompt(id);
-      if (success) {
-        setPrompts((prev) => prev.filter((p) => p.id !== id));
-      }
-      return success;
+      await soundtrackService.deletePrompt(id);
+      setPrompts((prev) => prev.filter((p) => p.id !== id));
     } catch (err) {
-      setError(`Error al eliminar prompt: ${err.message}`);
-      console.error("Error deleting prompt:", err);
+      setError(err.message);
       throw err;
     } finally {
       setLoading(false);
     }
   }, []);
 
-  /**
-   * Duplicar un prompt (para iteraciones)
-   * @param {string|number} id - ID del prompt a duplicar
-   * @param {Object} changes - Cambios opcionales a aplicar
-   * @returns {Promise<Object>} Nuevo prompt duplicado
-   */
-  const duplicatePrompt = useCallback(async (id, changes = {}) => {
+  const duplicatePrompt = useCallback(async (id) => {
     setLoading(true);
     setError(null);
 
     try {
-      const duplicated = await soundtrackService.duplicatePrompt(id, changes);
-      setPrompts((prev) => [...prev, duplicated]);
+      const duplicated = await soundtrackService.duplicatePrompt(id);
+      setPrompts((prev) => [duplicated, ...prev]);
       return duplicated;
     } catch (err) {
-      setError(`Error al duplicar prompt: ${err.message}`);
-      console.error("Error duplicating prompt:", err);
+      setError(err.message);
       throw err;
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // ==================== CALIFICACIÓN ====================
-
-  /**
-   * Calificar un prompt (1-10)
-   * @param {string|number} id - ID del prompt
-   * @param {number} rating - Calificación (1-10)
-   * @returns {Promise<Object>} Prompt actualizado
-   */
   const ratePrompt = useCallback(async (id, rating) => {
     setLoading(true);
     setError(null);
@@ -179,288 +129,544 @@ export const useSoundtrack = () => {
       setPrompts((prev) => prev.map((p) => (p.id === id ? updated : p)));
       return updated;
     } catch (err) {
-      setError(`Error al calificar prompt: ${err.message}`);
-      console.error("Error rating prompt:", err);
+      setError(err.message);
       throw err;
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // ==================== BÚSQUEDA Y FILTRADO ====================
+  // ==================== ⭐ RESULTADO TRACK ====================
 
-  /**
-   * Buscar prompts por tags
-   * @param {string[]} tags - Array de tags
-   * @returns {Promise<Array>} Prompts filtrados
-   */
-  const searchByTags = useCallback(async (tags) => {
+  const createResultadoTrack = useCallback(async (promptId, trackData) => {
     setLoading(true);
     setError(null);
 
     try {
-      const results = await soundtrackService.searchByTags(tags);
-      return results;
-    } catch (err) {
-      setError(`Error al buscar por tags: ${err.message}`);
-      console.error("Error searching by tags:", err);
-      return [];
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      // Calcular NumeroTrack automático
+      const existingTracks =
+        await soundtrackService.getResultadoTracksByPromptId(promptId);
+      const nextTrackNumber = existingTracks.length + 1;
 
-  /**
-   * Buscar prompts por género
-   * @param {string} genre - Género musical
-   * @returns {Promise<Array>} Prompts filtrados
-   */
-  const searchByGenre = useCallback(async (genre) => {
-    setLoading(true);
-    setError(null);
+      const trackWithNumber = {
+        ...trackData,
+        idPrompt: promptId,
+        numeroTrack: nextTrackNumber,
+      };
 
-    try {
-      const results = await soundtrackService.searchByGenre(genre);
-      return results;
-    } catch (err) {
-      setError(`Error al buscar por género: ${err.message}`);
-      console.error("Error searching by genre:", err);
-      return [];
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  /**
-   * Obtener prompts mejor calificados
-   * @param {number} minRating - Calificación mínima
-   * @param {number} limit - Número máximo de resultados
-   * @returns {Promise<Array>} Prompts top rated
-   */
-  const getTopRated = useCallback(async (minRating = 7, limit = 10) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const results = await soundtrackService.getTopRated(minRating, limit);
-      return results;
-    } catch (err) {
-      setError(`Error al obtener top rated: ${err.message}`);
-      console.error("Error getting top rated:", err);
-      return [];
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  /**
-   * Obtener prompts recientes
-   * @param {number} limit - Número de prompts
-   * @returns {Promise<Array>} Prompts recientes
-   */
-  const getRecentPrompts = useCallback(async (limit = 10) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const results = await soundtrackService.getRecentPrompts(limit);
-      return results;
-    } catch (err) {
-      setError(`Error al obtener prompts recientes: ${err.message}`);
-      console.error("Error getting recent prompts:", err);
-      return [];
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // ==================== FILTRADO LOCAL ====================
-
-  /**
-   * Filtrar prompts localmente (sin llamar al service)
-   * Útil para búsqueda en tiempo real
-   */
-  const filteredPrompts = useCallback(() => {
-    let filtered = [...prompts];
-
-    // Filtrar por búsqueda de texto
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter((prompt) => {
-        const titleMatch = prompt.songTitle?.toLowerCase().includes(query);
-        const lyricsMatch = prompt.lyrics?.toLowerCase().includes(query);
-        const styleMatch = prompt.styleDescription
-          ?.toLowerCase()
-          .includes(query);
-        return titleMatch || lyricsMatch || styleMatch;
-      });
-    }
-
-    // Filtrar por tags seleccionados
-    if (selectedTags.length > 0) {
-      filtered = filtered.filter((prompt) => {
-        if (!prompt.tags || prompt.tags.length === 0) return false;
-        return selectedTags.some((tag) =>
-          prompt.tags.some((promptTag) =>
-            promptTag.toLowerCase().includes(tag.toLowerCase())
-          )
-        );
-      });
-    }
-
-    // Filtrar por rating mínimo
-    if (minRating > 0) {
-      filtered = filtered.filter(
-        (prompt) => prompt.calificacion && prompt.calificacion >= minRating
+      const newTrack = await soundtrackService.createResultadoTrack(
+        trackWithNumber
       );
-    }
-
-    return filtered;
-  }, [prompts, searchQuery, selectedTags, minRating]);
-
-  // ==================== ESTADÍSTICAS ====================
-
-  /**
-   * Obtener estadísticas del soundtrack
-   * @returns {Promise<Object>} Estadísticas
-   */
-  const getStatistics = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const stats = await soundtrackService.getStatistics();
-      return stats;
+      return newTrack;
     } catch (err) {
-      setError(`Error al obtener estadísticas: ${err.message}`);
-      console.error("Error getting statistics:", err);
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // ==================== EXPORT/IMPORT ====================
-
-  /**
-   * Exportar todos los prompts
-   * @returns {Promise<Object>} Datos exportados
-   */
-  const exportPrompts = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const data = await soundtrackService.exportAll();
-      return data;
-    } catch (err) {
-      setError(`Error al exportar prompts: ${err.message}`);
-      console.error("Error exporting prompts:", err);
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  /**
-   * Importar prompts desde archivo
-   * @param {Object|Array} data - Datos a importar
-   * @returns {Promise<Array>} Prompts importados
-   */
-  const importPrompts = useCallback(async (data) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const imported = await soundtrackService.importAll(data);
-      setPrompts(imported);
-      return imported;
-    } catch (err) {
-      setError(`Error al importar prompts: ${err.message}`);
-      console.error("Error importing prompts:", err);
+      setError(`Error al crear track: ${err.message}`);
       throw err;
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // ==================== VALIDACIONES ====================
+  const updateResultadoTrack = useCallback(async (trackId, trackData) => {
+    setLoading(true);
+    setError(null);
 
-  /**
-   * Validar datos de prompt
-   * @param {Object} promptData - Datos a validar
-   * @returns {Object} { valid: boolean, errors: string[] }
-   */
+    try {
+      const updated = await soundtrackService.updateResultadoTrack(
+        trackId,
+        trackData
+      );
+      return updated;
+    } catch (err) {
+      setError(`Error al actualizar track: ${err.message}`);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const getResultadoTrackById = useCallback(async (trackId) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const track = await soundtrackService.getResultadoTrackById(trackId);
+      return track;
+    } catch (err) {
+      setError(`Error al obtener track: ${err.message}`);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const getResultadoTracksByPromptId = useCallback(async (promptId) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const tracks = await soundtrackService.getResultadoTracksByPromptId(
+        promptId
+      );
+      return tracks;
+    } catch (err) {
+      setError(`Error al obtener tracks: ${err.message}`);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const deleteResultadoTrack = useCallback(async (trackId) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      await soundtrackService.deleteResultadoTrack(trackId);
+    } catch (err) {
+      setError(`Error al eliminar track: ${err.message}`);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // ==================== ⭐ ESTRUCTURA TEMPORAL ====================
+
+  const createEstructuraTemporal = useCallback(
+    async (trackId, estructuraData) => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const estructura = await soundtrackService.createEstructuraTemporal(
+          trackId,
+          estructuraData
+        );
+        return estructura;
+      } catch (err) {
+        setError(`Error al crear estructura: ${err.message}`);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  const updateEstructuraTemporal = useCallback(
+    async (estructuraId, estructuraData) => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const updated = await soundtrackService.updateEstructuraTemporal(
+          estructuraId,
+          estructuraData
+        );
+        return updated;
+      } catch (err) {
+        setError(`Error al actualizar estructura: ${err.message}`);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  const deleteEstructuraTemporal = useCallback(async (estructuraId) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      await soundtrackService.deleteEstructuraTemporal(estructuraId);
+    } catch (err) {
+      setError(`Error al eliminar estructura: ${err.message}`);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // ==================== ⭐ CUE POINTS ====================
+
+  const createCuePoint = useCallback(async (trackId, cueData) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const cuePoint = await soundtrackService.createCuePoint(trackId, cueData);
+      return cuePoint;
+    } catch (err) {
+      setError(`Error al crear cue point: ${err.message}`);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const updateCuePoint = useCallback(async (cueId, cueData) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const updated = await soundtrackService.updateCuePoint(cueId, cueData);
+      return updated;
+    } catch (err) {
+      setError(`Error al actualizar cue point: ${err.message}`);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const deleteCuePoint = useCallback(async (cueId) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      await soundtrackService.deleteCuePoint(cueId);
+    } catch (err) {
+      setError(`Error al eliminar cue point: ${err.message}`);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // ==================== ⭐ TAG GENERO (M:N) ====================
+
+  const addTagGeneroToTrack = useCallback(async (trackId, tagName) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const result = await soundtrackService.addTagGeneroToTrack(
+        trackId,
+        tagName
+      );
+      return result;
+    } catch (err) {
+      setError(`Error al agregar tag: ${err.message}`);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const removeTagGeneroFromTrack = useCallback(async (trackId, tagGeneroId) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      await soundtrackService.removeTagGeneroFromTrack(trackId, tagGeneroId);
+    } catch (err) {
+      setError(`Error al eliminar tag: ${err.message}`);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // ==================== ⭐ SECCION ESTRUCTURA (LYRICS) ====================
+
+  const createSeccionEstructura = useCallback(async (lyricsId, seccionData) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const seccion = await soundtrackService.createSeccionEstructura(
+        lyricsId,
+        seccionData
+      );
+      return seccion;
+    } catch (err) {
+      setError(`Error al crear sección: ${err.message}`);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const updateSeccionEstructura = useCallback(
+    async (seccionId, seccionData) => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const updated = await soundtrackService.updateSeccionEstructura(
+          seccionId,
+          seccionData
+        );
+        return updated;
+      } catch (err) {
+        setError(`Error al actualizar sección: ${err.message}`);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  const deleteSeccionEstructura = useCallback(async (seccionId) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      await soundtrackService.deleteSeccionEstructura(seccionId);
+    } catch (err) {
+      setError(`Error al eliminar sección: ${err.message}`);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // ==================== ⭐ VRP ====================
+
+  const createVrp = useCallback(async (seccionId, vrpData) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const vrp = await soundtrackService.createVrp(seccionId, vrpData);
+      return vrp;
+    } catch (err) {
+      setError(`Error al crear VRP: ${err.message}`);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const updateVrp = useCallback(async (vrpId, vrpData) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const updated = await soundtrackService.updateVrp(vrpId, vrpData);
+      return updated;
+    } catch (err) {
+      setError(`Error al actualizar VRP: ${err.message}`);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const deleteVrp = useCallback(async (vrpId) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      await soundtrackService.deleteVrp(vrpId);
+    } catch (err) {
+      setError(`Error al eliminar VRP: ${err.message}`);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // ==================== ⭐ DESCRIPTORS (STYLE) ====================
+
+  const findDescriptor = useCallback(
+    async (styleId, descriptor1, categoria) => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const descriptor = await soundtrackService.findDescriptor(
+          styleId,
+          descriptor1,
+          categoria
+        );
+        return descriptor;
+      } catch (err) {
+        setError(`Error al buscar descriptor: ${err.message}`);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  const createOrUpdateDescriptor = useCallback(
+    async (styleId, descriptorData) => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        // El backend maneja la lógica de crear o actualizar
+        const result = await soundtrackService.createOrUpdateDescriptor(
+          styleId,
+          descriptorData
+        );
+        return result;
+      } catch (err) {
+        setError(`Error al crear/actualizar descriptor: ${err.message}`);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  const updateDescriptor = useCallback(async (descriptorId, descriptorData) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const updated = await soundtrackService.updateDescriptor(
+        descriptorId,
+        descriptorData
+      );
+      return updated;
+    } catch (err) {
+      setError(`Error al actualizar descriptor: ${err.message}`);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const deleteDescriptor = useCallback(async (descriptorId) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      await soundtrackService.deleteDescriptor(descriptorId);
+    } catch (err) {
+      setError(`Error al eliminar descriptor: ${err.message}`);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // ==================== VALIDACIONES (EXISTENTES) ====================
+
   const validatePrompt = useCallback((promptData) => {
-    return soundtrackService.validatePromptData(promptData);
+    return soundtrackService.validatePrompt(promptData);
   }, []);
 
-  /**
-   * Verificar límites de caracteres
-   * @param {Object} promptData - Datos del prompt
-   * @returns {Object} Warnings por campo
-   */
   const checkCharacterLimits = useCallback((promptData) => {
-    return soundtrackService.constructor.checkCharacterLimits(promptData);
+    return soundtrackService.checkCharacterLimits(promptData);
   }, []);
 
-  // ==================== EFECTOS ====================
+  // ==================== BÚSQUEDAS (EXISTENTES) ====================
 
-  /**
-   * Cargar prompts al montar el componente
-   */
-  useEffect(() => {
-    loadPrompts();
-  }, [loadPrompts]);
+  const searchPrompts = useCallback(async (query) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const results = await soundtrackService.searchPrompts(query);
+      return results;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const filterByTag = useCallback(async (tag) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const results = await soundtrackService.filterByTag(tag);
+      return results;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const filterByRating = useCallback(async (minRating) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const results = await soundtrackService.filterByRating(minRating);
+      return results;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   // ==================== RETURN ====================
 
   return {
-    // Estado
+    // Estados
     prompts,
     loading,
     error,
 
-    // Filtros
-    searchQuery,
-    setSearchQuery,
-    selectedTags,
-    setSelectedTags,
-    minRating,
-    setMinRating,
-    filteredPrompts: filteredPrompts(),
-
-    // CRUD
-    loadPrompts,
-    loadPromptById,
+    // Prompt CRUD
+    getAllPrompts,
+    getPromptById,
     createPrompt,
     updatePrompt,
     deletePrompt,
     duplicatePrompt,
-
-    // Calificación
     ratePrompt,
 
-    // Búsqueda
-    searchByTags,
-    searchByGenre,
-    getTopRated,
-    getRecentPrompts,
+    // ⭐ ResultadoTrack CRUD
+    createResultadoTrack,
+    updateResultadoTrack,
+    getResultadoTrackById,
+    getResultadoTracksByPromptId,
+    deleteResultadoTrack,
 
-    // Estadísticas
-    getStatistics,
+    // ⭐ EstructuraTemporal CRUD
+    createEstructuraTemporal,
+    updateEstructuraTemporal,
+    deleteEstructuraTemporal,
 
-    // Export/Import
-    exportPrompts,
-    importPrompts,
+    // ⭐ CuePoint CRUD
+    createCuePoint,
+    updateCuePoint,
+    deleteCuePoint,
+
+    // ⭐ TagGenero (M:N)
+    addTagGeneroToTrack,
+    removeTagGeneroFromTrack,
+
+    // ⭐ SeccionEstructura CRUD
+    createSeccionEstructura,
+    updateSeccionEstructura,
+    deleteSeccionEstructura,
+
+    // ⭐ VRP CRUD
+    createVrp,
+    updateVrp,
+    deleteVrp,
+
+    // ⭐ Descriptor CRUD
+    findDescriptor,
+    createOrUpdateDescriptor,
+    updateDescriptor,
+    deleteDescriptor,
 
     // Validaciones
     validatePrompt,
     checkCharacterLimits,
 
-    // Helpers
-    clearError: () => setError(null),
+    // Búsquedas
+    searchPrompts,
+    filterByTag,
+    filterByRating,
   };
 };
 
-export default useSoundtrack;
+export { useSoundtrack };

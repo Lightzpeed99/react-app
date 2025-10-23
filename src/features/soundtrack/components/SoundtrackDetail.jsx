@@ -12,20 +12,28 @@ import './SoundtrackDetail.css'
  * - Mostrar todos los detalles de un prompt
  * - Modo lectura vs modo edición
  * - Acciones: Editar, Duplicar, Eliminar, Calificar
- * - Navegación de vuelta al catálogo
+ * - ⭐ NUEVO: Botones para abrir los 3 analyzers
+ * - ⭐ NUEVO: Lista de ResultadoTracks analizados
  * 
  * PROPS:
  * @param {Object} prompt - Datos del prompt a mostrar
  * @param {Function} onBack - Callback para volver al catálogo
  * @param {Function} onEdit - Callback al guardar edición
  * @param {Function} onDelete - Callback al eliminar
+ * @param {Function} onNavigateToAnalyzer - ⭐ NUEVO: Callback para navegar a analyzers
  */
 
-const SoundtrackDetail = ({ prompt, onBack, onEdit, onDelete }) => {
+const SoundtrackDetail = ({ 
+  prompt, 
+  onBack, 
+  onEdit, 
+  onDelete,
+  onNavigateToAnalyzer // ⭐ NUEVO PROP
+}) => {
   // ==================== HOOKS ====================
   
   const {
-    createPrompt,      // ✅ AGREGAR AQUÍ
+    createPrompt,
     updatePrompt,
     deletePrompt,
     duplicatePrompt,
@@ -101,7 +109,6 @@ const SoundtrackDetail = ({ prompt, onBack, onEdit, onDelete }) => {
         savedPrompt = await updatePrompt(currentPrompt.id, updatedData)
       } else {
         // CREAR: Nuevo prompt
-        // ✅ CORRECCIÓN: Ya tenemos createPrompt del hook de arriba
         savedPrompt = await createPrompt(updatedData)
       }
 
@@ -190,6 +197,32 @@ const SoundtrackDetail = ({ prompt, onBack, onEdit, onDelete }) => {
     })
   }
 
+  // ==================== ⭐ NUEVOS HANDLERS PARA ANALYZERS ====================
+
+  const handleAnalyzeTrack = () => {
+    if (onNavigateToAnalyzer) {
+      onNavigateToAnalyzer('track', currentPrompt.id)
+    }
+  }
+
+  const handleViewTrackAnalysis = (trackId) => {
+    if (onNavigateToAnalyzer) {
+      onNavigateToAnalyzer('track', currentPrompt.id, trackId)
+    }
+  }
+
+  const handleAnalyzeLyrics = () => {
+    if (onNavigateToAnalyzer) {
+      onNavigateToAnalyzer('lyrics', currentPrompt.id)
+    }
+  }
+
+  const handleAnalyzeStyle = () => {
+    if (onNavigateToAnalyzer) {
+      onNavigateToAnalyzer('style', currentPrompt.id)
+    }
+  }
+
   // ==================== HELPERS ====================
 
   const getGenreColor = () => {
@@ -216,6 +249,11 @@ const SoundtrackDetail = ({ prompt, onBack, onEdit, onDelete }) => {
       hour: '2-digit',
       minute: '2-digit'
     })
+  }
+
+  const getResultadoTracksCount = () => {
+    if (!currentPrompt || !currentPrompt.resultadoTracks) return 0
+    return currentPrompt.resultadoTracks.length
   }
 
   // ==================== RENDER ====================
@@ -326,12 +364,6 @@ const SoundtrackDetail = ({ prompt, onBack, onEdit, onDelete }) => {
             <h1 className="song-title" style={{ color: genreColor }}>
               {currentPrompt.songTitle || 'Sin título'}
             </h1>
-            <div className="title-meta">
-              <span className="version-badge">{currentPrompt.version || 'v4.5'}</span>
-              {currentPrompt.duracion && (
-                <span className="duration-badge">⏱️ {currentPrompt.duracion}</span>
-              )}
-            </div>
           </div>
 
           {/* TAGS */}
@@ -424,43 +456,90 @@ const SoundtrackDetail = ({ prompt, onBack, onEdit, onDelete }) => {
             </div>
           )}
 
-          {/* ESTRUCTURA TEMPORAL */}
-          {currentPrompt.estructura && currentPrompt.estructura.length > 0 && (
-            <div className="section estructura-section">
-              <h3 className="section-title">📊 Estructura Musical</h3>
-              <div className="estructura-timeline">
-                {currentPrompt.estructura.map((seccion, index) => (
-                  <div key={index} className="estructura-item">
-                    <div className="estructura-time">
-                      {seccion.inicio} - {seccion.fin}
-                    </div>
-                    <div className="estructura-content">
-                      <span className="estructura-seccion">{seccion.seccion}</span>
-                      {seccion.descripcion && (
-                        <span className="estructura-desc">{seccion.descripcion}</span>
+          {/* ⭐ NUEVO: ANALYZERS SECTION */}
+          <div className="section analyzers-section">
+            <h3 className="section-title">🔬 Análisis Avanzado</h3>
+            <div className="analyzers-grid">
+              <button 
+                className="analyzer-card-btn"
+                onClick={handleAnalyzeLyrics}
+                disabled={!currentPrompt.lyrics}
+              >
+                <span className="analyzer-icon">📝</span>
+                <div className="analyzer-info">
+                  <h4>Lyrics Analyzer</h4>
+                  <p>Mapear secciones y VRPs con sistema SEMT</p>
+                </div>
+              </button>
+
+              <button 
+                className="analyzer-card-btn"
+                onClick={handleAnalyzeStyle}
+                disabled={!currentPrompt.styleDescription}
+              >
+                <span className="analyzer-icon">🎨</span>
+                <div className="analyzer-info">
+                  <h4>Style Analyzer</h4>
+                  <p>Extraer descriptores y categorías</p>
+                </div>
+              </button>
+
+              <button 
+                className="analyzer-card-btn"
+                onClick={handleAnalyzeTrack}
+              >
+                <span className="analyzer-icon">🎵</span>
+                <div className="analyzer-info">
+                  <h4>Track Analyzer</h4>
+                  <p>Analizar track generado ({getResultadoTracksCount()} analizados)</p>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* ⭐ NUEVO: RESULTADO TRACKS */}
+          {currentPrompt.resultadoTracks && currentPrompt.resultadoTracks.length > 0 && (
+            <div className="section tracks-section">
+              <h3 className="section-title">🎧 Tracks Analizados</h3>
+              <div className="tracks-list">
+                {currentPrompt.resultadoTracks.map((track) => (
+                  <div 
+                    key={track.id} 
+                    className="track-card"
+                    onClick={() => handleViewTrackAnalysis(track.id)}
+                  >
+                    <div className="track-header">
+                      <span className="track-number">Track #{track.numeroTrack}</span>
+                      {track.calificacionIndividual && (
+                        <span className="track-rating">
+                          ⭐ {track.calificacionIndividual}/10
+                        </span>
                       )}
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* CUE POINTS */}
-          {currentPrompt.cuePoints && currentPrompt.cuePoints.length > 0 && (
-            <div className="section cuepoints-section">
-              <h3 className="section-title">🎯 Cue Points</h3>
-              <div className="cuepoints-list">
-                {currentPrompt.cuePoints.map((cue, index) => (
-                  <div key={index} className="cuepoint-item">
-                    <div 
-                      className="cue-color"
-                      style={{ backgroundColor: cue.color || '#00d4ff' }}
-                    />
-                    <span className="cue-time">{cue.tiempo}</span>
-                    <span className="cue-tipo">{cue.tipo}</span>
-                    {cue.etiqueta && (
-                      <span className="cue-label">{cue.etiqueta}</span>
+                    <div className="track-info">
+                      {track.duracionReal && (
+                        <span className="track-duration">⏱️ {track.duracionReal}</span>
+                      )}
+                      {track.bpmReal && (
+                        <span className="track-bpm">🥁 {track.bpmReal} BPM</span>
+                      )}
+                      {track.keyMusical && (
+                        <span className="track-key">🎹 {track.keyMusical}</span>
+                      )}
+                    </div>
+                    {track.momentoNarrativo && (
+                      <p className="track-momento">{track.momentoNarrativo}</p>
+                    )}
+                    {track.sunoUrl && (
+                      <a 
+                        href={track.sunoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="track-link"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        🔗 Ver en Suno
+                      </a>
                     )}
                   </div>
                 ))}
@@ -468,20 +547,10 @@ const SoundtrackDetail = ({ prompt, onBack, onEdit, onDelete }) => {
             </div>
           )}
 
-          {/* MOMENTO NARRATIVO */}
-          {currentPrompt.momento && (
-            <div className="section momento-section">
-              <h3 className="section-title">🎬 Momento Narrativo</h3>
-              <div className="momento-display">
-                <p>{currentPrompt.momento}</p>
-              </div>
-            </div>
-          )}
-
           {/* NOTAS */}
           {currentPrompt.notas && (
             <div className="section notas-section">
-              <h3 className="section-title">📝 Notas & Variaciones</h3>
+              <h3 className="section-title">📝 Notas Generales</h3>
               <div className="notas-display">
                 <pre>{currentPrompt.notas}</pre>
               </div>
@@ -515,41 +584,6 @@ const SoundtrackDetail = ({ prompt, onBack, onEdit, onDelete }) => {
             </div>
           </div>
 
-          {/* TECHNICAL INFO */}
-          <div className="sidebar-section technical-section">
-            <h3 className="sidebar-title">⚙️ Información Técnica</h3>
-            <div className="technical-grid">
-              {currentPrompt.bpm && (
-                <div className="tech-row">
-                  <span className="tech-label">BPM:</span>
-                  <span className="tech-value" style={{ color: genreColor }}>
-                    {currentPrompt.bpm}
-                  </span>
-                </div>
-              )}
-              {currentPrompt.key && (
-                <div className="tech-row">
-                  <span className="tech-label">Key:</span>
-                  <span className="tech-value" style={{ color: genreColor }}>
-                    {currentPrompt.key}
-                  </span>
-                </div>
-              )}
-              {currentPrompt.duracion && (
-                <div className="tech-row">
-                  <span className="tech-label">Duración:</span>
-                  <span className="tech-value">{currentPrompt.duracion}</span>
-                </div>
-              )}
-              {currentPrompt.version && (
-                <div className="tech-row">
-                  <span className="tech-label">Versión:</span>
-                  <span className="tech-value">{currentPrompt.version}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
           {/* ADVANCED SETTINGS */}
           <div className="sidebar-section advanced-section">
             <h3 className="sidebar-title">🎛️ Advanced Settings</h3>
@@ -578,23 +612,14 @@ const SoundtrackDetail = ({ prompt, onBack, onEdit, onDelete }) => {
                   <span className="setting-percent">{currentPrompt.styleInfluence || 50}%</span>
                 </div>
               </div>
+              {currentPrompt.vocalGender && (
+                <div className="setting-display">
+                  <span className="setting-label">Vocal Gender:</span>
+                  <span className="setting-value">{currentPrompt.vocalGender}</span>
+                </div>
+              )}
             </div>
           </div>
-
-          {/* SUNO URL */}
-          {currentPrompt.sunoUrl && (
-            <div className="sidebar-section suno-url-section">
-              <h3 className="sidebar-title">🔗 Suno</h3>
-              <a 
-                href={currentPrompt.sunoUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="suno-link"
-              >
-                Abrir en Suno →
-              </a>
-            </div>
-          )}
 
           {/* METADATA */}
           <div className="sidebar-section metadata-section">

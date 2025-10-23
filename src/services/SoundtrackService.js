@@ -1,418 +1,474 @@
 // src/services/SoundtrackService.js
-
 import { soundtrackRepository } from "../repositories/SoundtrackRepository";
 import RepositoryFactory from "../repositories/RepositoryFactory";
 
 /**
- * SoundtrackService - Lógica de negocio para prompts de Suno
+ * SoundtrackService - Capa de servicio para lógica de negocio de Soundtrack
  *
  * RESPONSABILIDADES:
- * - Validaciones de negocio antes de guardar
- * - Normalización de datos según reglas de Suno
- * - Transformaciones complejas
- * - Preparación de datos para futuro mapeo DB
+ * - Validaciones de datos
+ * - Transformaciones de datos
+ * - Lógica de negocio
+ * - Intermediario entre hooks y repositorio
  *
- * FUTURO DB: Este service prepara los datos para dividirse en múltiples tablas:
- * - Prompt (raíz)
- * - Lyrics (con cálculo de porcentajes)
- * - StyleDescription (con extracción de descriptores)
- * - ExcludedStyles
- * - AdvancedOptions
- * - ResultadoTrack
- * - EstructuraTemporal
- * - CuePoint
- * - PromptTag (tags)
+ * MÉTODOS:
+ * - CRUD Prompts (existente)
+ * - ⭐ CRUD ResultadoTrack + EstructuraTemporal + CuePoints
+ * - ⭐ CRUD SeccionEstructura + VRPs
+ * - ⭐ CRUD Descriptors
+ * - Validaciones
  */
 
-export class SoundtrackService {
+class SoundtrackService {
   constructor() {
-    // this.repository = soundtrackRepository;
+    //this.repository = RepositoryFactory.get("soundtrack");
     this.repository = RepositoryFactory.createSoundtrackRepository();
   }
 
-  // ==================== LÍMITES Y VALORES POR DEFECTO ====================
+  // ==================== PROMPT CRUD (EXISTENTE) ====================
 
-  static LIMITS = {
-    SONG_TITLE_MAX: 255,
-    LYRICS_MAX: 5000,
-    STYLE_DESCRIPTION_MAX: 1000,
-    EXCLUDED_STYLE_MAX: 1000,
-    WEIRDNESS_MIN: 0,
-    WEIRDNESS_MAX: 100,
-    STYLE_INFLUENCE_MIN: 0,
-    STYLE_INFLUENCE_MAX: 100,
-    RATING_MIN: 1,
-    RATING_MAX: 10,
-  };
-
-  static DEFAULTS = {
-    VERSION: "v4.5",
-    DURACION: "3:30",
-    WEIRDNESS: 50,
-    STYLE_INFLUENCE: 50,
-    TAGS: [],
-    ESTRUCTURA: [],
-    CUE_POINTS: [],
-  };
-
-  // ==================== CRUD CON VALIDACIONES ====================
-
-  /**
-   * Crear un nuevo prompt con validaciones completas
-   * @param {Object} promptData - Datos del prompt
-   * @returns {Promise<Object>} Prompt creado
-   */
-  async createPrompt(promptData) {
-    // Validar datos
-    const validation = this.validatePromptData(promptData);
-    if (!validation.valid) {
-      throw new Error(`Validation failed: ${validation.errors.join(", ")}`);
-    }
-
-    // Normalizar y completar datos
-    const normalizedData = this._normalizePromptData(promptData);
-
-    // Crear prompt
-    return await this.repository.createPrompt(normalizedData);
-  }
-
-  /**
-   * Actualizar un prompt existente
-   * @param {string|number} id
-   * @param {Object} promptData
-   * @returns {Promise<Object>}
-   */
-  async updatePrompt(id, promptData) {
-    // Verificar que existe
-    const existing = await this.repository.getById(id);
-    if (!existing) {
-      throw new Error(`Prompt with id ${id} not found`);
-    }
-
-    // Validar datos
-    const validation = this.validatePromptData(promptData, true); // true = update mode
-    if (!validation.valid) {
-      throw new Error(`Validation failed: ${validation.errors.join(", ")}`);
-    }
-
-    // Normalizar datos
-    const normalizedData = this._normalizePromptData(promptData, existing);
-
-    // Actualizar
-    return await this.repository.updatePrompt(id, normalizedData);
-  }
-
-  /**
-   * Obtener un prompt por ID
-   * @param {string|number} id
-   * @returns {Promise<Object|null>}
-   */
-  async getPromptById(id) {
-    return await this.repository.getById(id);
-  }
-
-  /**
-   * Obtener todos los prompts
-   * @returns {Promise<Array>}
-   */
   async getAllPrompts() {
-    return await this.repository.getAll();
-  }
-
-  /**
-   * Eliminar un prompt
-   * @param {string|number} id
-   * @returns {Promise<boolean>}
-   */
-  async deletePrompt(id) {
-    return await this.repository.delete(id);
-  }
-
-  // ==================== BÚSQUEDA Y FILTRADO ====================
-
-  /**
-   * Buscar prompts por tags
-   * @param {string[]} tags
-   * @returns {Promise<Array>}
-   */
-  async searchByTags(tags) {
-    if (!tags || tags.length === 0) {
+    try {
       return await this.repository.getAll();
+    } catch (error) {
+      throw new Error(`Error al obtener prompts: ${error.message}`);
     }
-    return await this.repository.searchByTags(tags);
   }
 
-  /**
-   * Buscar por género
-   * @param {string} genre
-   * @returns {Promise<Array>}
-   */
-  async searchByGenre(genre) {
-    return await this.repository.getByGenre(genre);
+  async getPromptById(id) {
+    try {
+      return await this.repository.getById(id);
+    } catch (error) {
+      throw new Error(`Error al obtener prompt ${id}: ${error.message}`);
+    }
   }
 
-  /**
-   * Buscar por descriptores
-   * @param {string[]} descriptors
-   * @returns {Promise<Array>}
-   */
-  async searchByDescriptors(descriptors) {
-    return await this.repository.searchByDescriptors(descriptors);
+  async createPrompt(promptData) {
+    // Validar antes de crear
+    const validation = this.validatePrompt(promptData);
+    if (!validation.valid) {
+      throw new Error(`Validación fallida: ${validation.errors.join(", ")}`);
+    }
+
+    try {
+      return await this.repository.create(promptData);
+    } catch (error) {
+      throw new Error(`Error al crear prompt: ${error.message}`);
+    }
   }
 
-  /**
-   * Obtener prompts mejor calificados
-   * @param {number} minRating - Calificación mínima (1-10)
-   * @param {number} limit - Máximo número de resultados
-   * @returns {Promise<Array>}
-   */
-  async getTopRated(minRating = 7, limit = 10) {
-    const prompts = await this.repository.getByMinRating(minRating);
+  async updatePrompt(id, promptData) {
+    // Validar antes de actualizar
+    const validation = this.validatePrompt(promptData, true);
+    if (!validation.valid) {
+      throw new Error(`Validación fallida: ${validation.errors.join(", ")}`);
+    }
 
-    // Ordenar por calificación descendente
-    const sorted = prompts.sort(
-      (a, b) => (b.calificacion || 0) - (a.calificacion || 0)
-    );
-
-    return sorted.slice(0, limit);
+    try {
+      return await this.repository.update(id, promptData);
+    } catch (error) {
+      throw new Error(`Error al actualizar prompt ${id}: ${error.message}`);
+    }
   }
 
-  /**
-   * Obtener prompts recientes
-   * @param {number} limit
-   * @returns {Promise<Array>}
-   */
-  async getRecentPrompts(limit = 10) {
-    return await this.repository.getRecent(limit);
+  async deletePrompt(id) {
+    try {
+      return await this.repository.delete(id);
+    } catch (error) {
+      throw new Error(`Error al eliminar prompt ${id}: ${error.message}`);
+    }
   }
 
-  // ==================== GESTIÓN DE RATINGS ====================
+  async duplicatePrompt(id) {
+    try {
+      const original = await this.repository.getById(id);
 
-  /**
-   * Calificar un prompt (1-10)
-   * @param {string|number} id
-   * @param {number} rating - Calificación de 1 a 10
-   * @returns {Promise<Object>}
-   */
+      const duplicated = {
+        ...original,
+        songTitle: `${original.songTitle} (copia)`,
+        createdAt: new Date().toISOString(),
+      };
+
+      delete duplicated.id;
+      delete duplicated.updatedAt;
+
+      return await this.repository.create(duplicated);
+    } catch (error) {
+      throw new Error(`Error al duplicar prompt ${id}: ${error.message}`);
+    }
+  }
+
   async ratePrompt(id, rating) {
-    if (
-      rating < SoundtrackService.LIMITS.RATING_MIN ||
-      rating > SoundtrackService.LIMITS.RATING_MAX
-    ) {
-      throw new Error(
-        `Rating must be between ${SoundtrackService.LIMITS.RATING_MIN} and ${SoundtrackService.LIMITS.RATING_MAX}`
+    if (rating < 1 || rating > 10) {
+      throw new Error("La calificación debe estar entre 1 y 10");
+    }
+
+    try {
+      return await this.repository.update(id, { calificacion: rating });
+    } catch (error) {
+      throw new Error(`Error al calificar prompt ${id}: ${error.message}`);
+    }
+  }
+
+  // ==================== ⭐ RESULTADO TRACK CRUD ====================
+
+  async createResultadoTrack(trackData) {
+    const validation = this.validateResultadoTrackData(trackData);
+    if (!validation.valid) {
+      throw new Error(`Validación fallida: ${validation.errors.join(", ")}`);
+    }
+
+    try {
+      return await this.repository.createResultadoTrack(trackData);
+    } catch (error) {
+      throw new Error(`Error al crear track: ${error.message}`);
+    }
+  }
+
+  async updateResultadoTrack(trackId, trackData) {
+    const validation = this.validateResultadoTrackData(trackData, true);
+    if (!validation.valid) {
+      throw new Error(`Validación fallida: ${validation.errors.join(", ")}`);
+    }
+
+    try {
+      return await this.repository.updateResultadoTrack(trackId, trackData);
+    } catch (error) {
+      throw new Error(`Error al actualizar track: ${error.message}`);
+    }
+  }
+
+  async getResultadoTrackById(trackId) {
+    try {
+      return await this.repository.getResultadoTrackById(trackId);
+    } catch (error) {
+      throw new Error(`Error al obtener track: ${error.message}`);
+    }
+  }
+
+  async getResultadoTracksByPromptId(promptId) {
+    try {
+      return await this.repository.getResultadoTracksByPromptId(promptId);
+    } catch (error) {
+      throw new Error(`Error al obtener tracks: ${error.message}`);
+    }
+  }
+
+  async deleteResultadoTrack(trackId) {
+    try {
+      return await this.repository.deleteResultadoTrack(trackId);
+    } catch (error) {
+      throw new Error(`Error al eliminar track: ${error.message}`);
+    }
+  }
+
+  // ==================== ⭐ ESTRUCTURA TEMPORAL CRUD ====================
+
+  async createEstructuraTemporal(trackId, estructuraData) {
+    const validation = this.validateEstructuraTemporalData(estructuraData);
+    if (!validation.valid) {
+      throw new Error(`Validación fallida: ${validation.errors.join(", ")}`);
+    }
+
+    try {
+      return await this.repository.createEstructuraTemporal(
+        trackId,
+        estructuraData
       );
+    } catch (error) {
+      throw new Error(`Error al crear estructura: ${error.message}`);
     }
-
-    const prompt = await this.repository.getById(id);
-    if (!prompt) {
-      throw new Error(`Prompt with id ${id} not found`);
-    }
-
-    return await this.repository.update(id, {
-      ...prompt,
-      calificacion: rating,
-    });
   }
 
-  // ==================== DUPLICACIÓN E ITERACIONES ====================
-
-  /**
-   * Duplicar un prompt para crear iteración
-   * @param {string|number} id
-   * @param {Object} changes - Cambios a aplicar en la copia
-   * @returns {Promise<Object>}
-   */
-  async duplicatePrompt(id, changes = {}) {
-    const duplicated = await this.repository.duplicatePrompt(id);
-
-    // Aplicar cambios si se proporcionan
-    if (Object.keys(changes).length > 0) {
-      return await this.repository.update(duplicated.id, {
-        ...duplicated,
-        ...changes,
-      });
+  async updateEstructuraTemporal(estructuraId, estructuraData) {
+    const validation = this.validateEstructuraTemporalData(
+      estructuraData,
+      true
+    );
+    if (!validation.valid) {
+      throw new Error(`Validación fallida: ${validation.errors.join(", ")}`);
     }
 
-    return duplicated;
-  }
-
-  // ==================== EXPORT/IMPORT ====================
-
-  /**
-   * Exportar todos los prompts
-   * @returns {Promise<Object>}
-   */
-  async exportAll() {
-    return await this.repository.exportData();
-  }
-
-  /**
-   * Importar prompts
-   * @param {Object|Array} data
-   * @returns {Promise<Array>}
-   */
-  async importAll(data) {
-    // Validar formato
-    const items = Array.isArray(data) ? data : data.data || data;
-
-    if (!Array.isArray(items)) {
-      throw new Error(
-        "Import data must be an array or object with data property"
+    try {
+      return await this.repository.updateEstructuraTemporal(
+        estructuraId,
+        estructuraData
       );
+    } catch (error) {
+      throw new Error(`Error al actualizar estructura: ${error.message}`);
     }
-
-    // Validar cada prompt
-    const invalidPrompts = [];
-    items.forEach((prompt, index) => {
-      const validation = this.validatePromptData(prompt, true);
-      if (!validation.valid) {
-        invalidPrompts.push({
-          index,
-          errors: validation.errors,
-        });
-      }
-    });
-
-    if (invalidPrompts.length > 0) {
-      throw new Error(
-        `Invalid prompts found: ${JSON.stringify(invalidPrompts)}`
-      );
-    }
-
-    return await this.repository.importData(items);
   }
 
-  // ==================== ESTADÍSTICAS ====================
+  async deleteEstructuraTemporal(estructuraId) {
+    try {
+      return await this.repository.deleteEstructuraTemporal(estructuraId);
+    } catch (error) {
+      throw new Error(`Error al eliminar estructura: ${error.message}`);
+    }
+  }
 
-  /**
-   * Obtener estadísticas completas
-   * @returns {Promise<Object>}
-   */
-  async getStatistics() {
-    return await this.repository.getStatistics();
+  // ==================== ⭐ CUE POINT CRUD ====================
+
+  async createCuePoint(trackId, cueData) {
+    const validation = this.validateCuePointData(cueData);
+    if (!validation.valid) {
+      throw new Error(`Validación fallida: ${validation.errors.join(", ")}`);
+    }
+
+    try {
+      return await this.repository.createCuePoint(trackId, cueData);
+    } catch (error) {
+      throw new Error(`Error al crear cue point: ${error.message}`);
+    }
+  }
+
+  async updateCuePoint(cueId, cueData) {
+    const validation = this.validateCuePointData(cueData, true);
+    if (!validation.valid) {
+      throw new Error(`Validación fallida: ${validation.errors.join(", ")}`);
+    }
+
+    try {
+      return await this.repository.updateCuePoint(cueId, cueData);
+    } catch (error) {
+      throw new Error(`Error al actualizar cue point: ${error.message}`);
+    }
+  }
+
+  async deleteCuePoint(cueId) {
+    try {
+      return await this.repository.deleteCuePoint(cueId);
+    } catch (error) {
+      throw new Error(`Error al eliminar cue point: ${error.message}`);
+    }
+  }
+
+  // ==================== ⭐ TAG GENERO (M:N) ====================
+
+  async addTagGeneroToTrack(trackId, tagName) {
+    if (!tagName || tagName.trim() === "") {
+      throw new Error("Nombre de tag es requerido");
+    }
+
+    try {
+      return await this.repository.addTagGeneroToTrack(trackId, tagName);
+    } catch (error) {
+      throw new Error(`Error al agregar tag: ${error.message}`);
+    }
+  }
+
+  async removeTagGeneroFromTrack(trackId, tagGeneroId) {
+    try {
+      return await this.repository.removeTagGeneroFromTrack(
+        trackId,
+        tagGeneroId
+      );
+    } catch (error) {
+      throw new Error(`Error al eliminar tag: ${error.message}`);
+    }
+  }
+
+  // ==================== ⭐ SECCION ESTRUCTURA CRUD ====================
+
+  async createSeccionEstructura(lyricsId, seccionData) {
+    const validation = this.validateSeccionEstructuraData(seccionData);
+    if (!validation.valid) {
+      throw new Error(`Validación fallida: ${validation.errors.join(", ")}`);
+    }
+
+    try {
+      return await this.repository.createSeccionEstructura(
+        lyricsId,
+        seccionData
+      );
+    } catch (error) {
+      throw new Error(`Error al crear sección: ${error.message}`);
+    }
+  }
+
+  async updateSeccionEstructura(seccionId, seccionData) {
+    const validation = this.validateSeccionEstructuraData(seccionData, true);
+    if (!validation.valid) {
+      throw new Error(`Validación fallida: ${validation.errors.join(", ")}`);
+    }
+
+    try {
+      return await this.repository.updateSeccionEstructura(
+        seccionId,
+        seccionData
+      );
+    } catch (error) {
+      throw new Error(`Error al actualizar sección: ${error.message}`);
+    }
+  }
+
+  async deleteSeccionEstructura(seccionId) {
+    try {
+      return await this.repository.deleteSeccionEstructura(seccionId);
+    } catch (error) {
+      throw new Error(`Error al eliminar sección: ${error.message}`);
+    }
+  }
+
+  // ==================== ⭐ VRP CRUD ====================
+
+  async createVrp(seccionId, vrpData) {
+    const validation = this.validateVrpData(vrpData);
+    if (!validation.valid) {
+      throw new Error(`Validación fallida: ${validation.errors.join(", ")}`);
+    }
+
+    try {
+      return await this.repository.createVrp(seccionId, vrpData);
+    } catch (error) {
+      throw new Error(`Error al crear VRP: ${error.message}`);
+    }
+  }
+
+  async updateVrp(vrpId, vrpData) {
+    const validation = this.validateVrpData(vrpData, true);
+    if (!validation.valid) {
+      throw new Error(`Validación fallida: ${validation.errors.join(", ")}`);
+    }
+
+    try {
+      return await this.repository.updateVrp(vrpId, vrpData);
+    } catch (error) {
+      throw new Error(`Error al actualizar VRP: ${error.message}`);
+    }
+  }
+
+  async deleteVrp(vrpId) {
+    try {
+      return await this.repository.deleteVrp(vrpId);
+    } catch (error) {
+      throw new Error(`Error al eliminar VRP: ${error.message}`);
+    }
+  }
+
+  // ==================== ⭐ DESCRIPTOR CRUD ====================
+
+  async findDescriptor(styleId, descriptor1, categoria) {
+    try {
+      return await this.repository.findDescriptor(
+        styleId,
+        descriptor1,
+        categoria
+      );
+    } catch (error) {
+      throw new Error(`Error al buscar descriptor: ${error.message}`);
+    }
+  }
+
+  async createOrUpdateDescriptor(styleId, descriptorData) {
+    const validation = this.validateDescriptorData(descriptorData);
+    if (!validation.valid) {
+      throw new Error(`Validación fallida: ${validation.errors.join(", ")}`);
+    }
+
+    try {
+      // El backend maneja la lógica de duplicados
+      return await this.repository.createOrUpdateDescriptor(
+        styleId,
+        descriptorData
+      );
+    } catch (error) {
+      throw new Error(`Error al crear/actualizar descriptor: ${error.message}`);
+    }
+  }
+
+  async updateDescriptor(descriptorId, descriptorData) {
+    const validation = this.validateDescriptorData(descriptorData, true);
+    if (!validation.valid) {
+      throw new Error(`Validación fallida: ${validation.errors.join(", ")}`);
+    }
+
+    try {
+      return await this.repository.updateDescriptor(
+        descriptorId,
+        descriptorData
+      );
+    } catch (error) {
+      throw new Error(`Error al actualizar descriptor: ${error.message}`);
+    }
+  }
+
+  async deleteDescriptor(descriptorId) {
+    try {
+      return await this.repository.deleteDescriptor(descriptorId);
+    } catch (error) {
+      throw new Error(`Error al eliminar descriptor: ${error.message}`);
+    }
   }
 
   // ==================== VALIDACIONES ====================
 
-  /**
-   * Validar datos completos de un prompt
-   * @param {Object} promptData
-   * @param {boolean} isUpdate - Si es actualización (campos opcionales)
-   * @returns {Object} { valid: boolean, errors: string[] }
-   */
-  validatePromptData(promptData, isUpdate = false) {
+  validatePrompt(promptData, isUpdate = false) {
     const errors = [];
 
-    // Song Title (obligatorio solo en create)
+    // SongTitle es obligatorio
     if (
       !isUpdate &&
       (!promptData.songTitle || promptData.songTitle.trim() === "")
     ) {
-      errors.push("Song Title es obligatorio");
-    }
-    if (
-      promptData.songTitle &&
-      promptData.songTitle.length > SoundtrackService.LIMITS.SONG_TITLE_MAX
-    ) {
-      errors.push(
-        `Song Title excede ${SoundtrackService.LIMITS.SONG_TITLE_MAX} caracteres`
-      );
+      errors.push("El título es obligatorio");
     }
 
-    // Lyrics (max 5000 chars)
-    if (
-      promptData.lyrics &&
-      promptData.lyrics.length > SoundtrackService.LIMITS.LYRICS_MAX
-    ) {
-      errors.push(
-        `Lyrics excede ${SoundtrackService.LIMITS.LYRICS_MAX} caracteres (actual: ${promptData.lyrics.length})`
-      );
+    if (promptData.songTitle && promptData.songTitle.length > 255) {
+      errors.push("El título no puede exceder 255 caracteres");
     }
 
-    // Style Description (max 1000 chars)
+    // Validar límites de caracteres
+    if (promptData.lyrics && promptData.lyrics.length > 5000) {
+      errors.push("Lyrics excede el límite de 5000 caracteres");
+    }
+
     if (
       promptData.styleDescription &&
-      promptData.styleDescription.length >
-        SoundtrackService.LIMITS.STYLE_DESCRIPTION_MAX
+      promptData.styleDescription.length > 1000
     ) {
-      errors.push(
-        `Style Description excede ${SoundtrackService.LIMITS.STYLE_DESCRIPTION_MAX} caracteres (actual: ${promptData.styleDescription.length})`
-      );
+      errors.push("Style Description excede el límite de 1000 caracteres");
     }
 
-    // Excluded Style (max 1000 chars)
-    if (
-      promptData.excludedStyle &&
-      promptData.excludedStyle.length >
-        SoundtrackService.LIMITS.EXCLUDED_STYLE_MAX
-    ) {
-      errors.push(
-        `Excluded Style excede ${SoundtrackService.LIMITS.EXCLUDED_STYLE_MAX} caracteres (actual: ${promptData.excludedStyle.length})`
-      );
+    if (promptData.excludedStyle && promptData.excludedStyle.length > 1000) {
+      errors.push("Excluded Style excede el límite de 1000 caracteres");
     }
 
-    // Weirdness (0-100)
-    if (promptData.weirdness !== undefined) {
+    // Validar weirdness y styleInfluence (0-100)
+    if (promptData.weirdness !== undefined && promptData.weirdness !== null) {
       const weirdness = Number(promptData.weirdness);
-      if (
-        isNaN(weirdness) ||
-        weirdness < SoundtrackService.LIMITS.WEIRDNESS_MIN ||
-        weirdness > SoundtrackService.LIMITS.WEIRDNESS_MAX
-      ) {
-        errors.push(
-          `Weirdness debe estar entre ${SoundtrackService.LIMITS.WEIRDNESS_MIN} y ${SoundtrackService.LIMITS.WEIRDNESS_MAX}`
-        );
+      if (isNaN(weirdness) || weirdness < 0 || weirdness > 100) {
+        errors.push("Weirdness debe estar entre 0 y 100");
       }
     }
 
-    // Style Influence (0-100)
-    if (promptData.styleInfluence !== undefined) {
+    if (
+      promptData.styleInfluence !== undefined &&
+      promptData.styleInfluence !== null
+    ) {
       const influence = Number(promptData.styleInfluence);
-      if (
-        isNaN(influence) ||
-        influence < SoundtrackService.LIMITS.STYLE_INFLUENCE_MIN ||
-        influence > SoundtrackService.LIMITS.STYLE_INFLUENCE_MAX
-      ) {
-        errors.push(
-          `Style Influence debe estar entre ${SoundtrackService.LIMITS.STYLE_INFLUENCE_MIN} y ${SoundtrackService.LIMITS.STYLE_INFLUENCE_MAX}`
-        );
+      if (isNaN(influence) || influence < 0 || influence > 100) {
+        errors.push("Style Influence debe estar entre 0 y 100");
       }
     }
 
-    // Calificación (1-10) si existe
-    if (promptData.calificacion !== undefined) {
+    // Validar calificación (1-10)
+    if (
+      promptData.calificacion !== undefined &&
+      promptData.calificacion !== null
+    ) {
       const rating = Number(promptData.calificacion);
-      if (
-        isNaN(rating) ||
-        rating < SoundtrackService.LIMITS.RATING_MIN ||
-        rating > SoundtrackService.LIMITS.RATING_MAX
-      ) {
-        errors.push(
-          `Calificación debe estar entre ${SoundtrackService.LIMITS.RATING_MIN} y ${SoundtrackService.LIMITS.RATING_MAX}`
-        );
+      if (isNaN(rating) || rating < 1 || rating > 10) {
+        errors.push("Calificación debe estar entre 1 y 10");
       }
     }
 
-    // Tags (debe ser array)
-    if (promptData.tags !== undefined && !Array.isArray(promptData.tags)) {
-      errors.push("Tags debe ser un array");
-    }
-
-    // Estructura (debe ser array)
-    if (
-      promptData.estructura !== undefined &&
-      !Array.isArray(promptData.estructura)
-    ) {
-      errors.push("Estructura debe ser un array");
-    }
-
-    // CuePoints (debe ser array)
-    if (
-      promptData.cuePoints !== undefined &&
-      !Array.isArray(promptData.cuePoints)
-    ) {
-      errors.push("CuePoints debe ser un array");
+    // Validar vocalGender
+    if (promptData.vocalGender) {
+      const validGenders = ["male", "female", "neutral"];
+      if (!validGenders.includes(promptData.vocalGender.toLowerCase())) {
+        errors.push("Vocal Gender debe ser male, female o neutral");
+      }
     }
 
     return {
@@ -421,137 +477,320 @@ export class SoundtrackService {
     };
   }
 
-  // ==================== NORMALIZACIÓN PRIVADA ====================
+  validateResultadoTrackData(trackData, isUpdate = false) {
+    const errors = [];
 
-  /**
-   * Normalizar datos del prompt con valores por defecto
-   * @private
-   * @param {Object} promptData
-   * @param {Object} existing - Datos existentes (para updates)
-   * @returns {Object}
-   */
-  _normalizePromptData(promptData, existing = null) {
-    const normalized = { ...promptData };
-
-    // Aplicar valores por defecto solo si no existen
-    if (normalized.version === undefined) {
-      normalized.version =
-        existing?.version || SoundtrackService.DEFAULTS.VERSION;
-    }
-    if (normalized.duracion === undefined) {
-      normalized.duracion =
-        existing?.duracion || SoundtrackService.DEFAULTS.DURACION;
-    }
-    if (normalized.weirdness === undefined) {
-      normalized.weirdness =
-        existing?.weirdness || SoundtrackService.DEFAULTS.WEIRDNESS;
-    }
-    if (normalized.styleInfluence === undefined) {
-      normalized.styleInfluence =
-        existing?.styleInfluence || SoundtrackService.DEFAULTS.STYLE_INFLUENCE;
-    }
-    if (normalized.tags === undefined) {
-      normalized.tags = existing?.tags || [...SoundtrackService.DEFAULTS.TAGS];
-    }
-    if (normalized.estructura === undefined) {
-      normalized.estructura = existing?.estructura || [
-        ...SoundtrackService.DEFAULTS.ESTRUCTURA,
-      ];
-    }
-    if (normalized.cuePoints === undefined) {
-      normalized.cuePoints = existing?.cuePoints || [
-        ...SoundtrackService.DEFAULTS.CUE_POINTS,
-      ];
+    // SunoUrl es obligatorio
+    if (!isUpdate && !trackData.sunoUrl) {
+      errors.push("Suno URL es obligatorio");
     }
 
-    // Normalizar strings (trim)
-    if (normalized.songTitle) {
-      normalized.songTitle = normalized.songTitle.trim();
-    }
-    if (normalized.lyrics) {
-      normalized.lyrics = normalized.lyrics.trim();
-    }
-    if (normalized.styleDescription) {
-      normalized.styleDescription = normalized.styleDescription.trim();
-    }
-    if (normalized.excludedStyle) {
-      normalized.excludedStyle = normalized.excludedStyle.trim();
+    if (trackData.sunoUrl && !this._isValidUrl(trackData.sunoUrl)) {
+      errors.push("Suno URL no es válida");
     }
 
-    // Normalizar tags a lowercase
-    if (normalized.tags && Array.isArray(normalized.tags)) {
-      normalized.tags = normalized.tags
-        .map((tag) => tag.toLowerCase().trim())
-        .filter((tag) => tag);
+    // DuracionReal es obligatorio
+    if (!isUpdate && !trackData.duracionReal) {
+      errors.push("Duración Real es obligatoria");
     }
 
-    // Asegurar que weirdness y styleInfluence sean números
-    if (normalized.weirdness !== undefined) {
-      normalized.weirdness = Number(normalized.weirdness);
-    }
-    if (normalized.styleInfluence !== undefined) {
-      normalized.styleInfluence = Number(normalized.styleInfluence);
+    if (
+      trackData.duracionReal &&
+      !this._isValidTimeFormat(trackData.duracionReal)
+    ) {
+      errors.push("Duración Real debe estar en formato mm:ss");
     }
 
-    return normalized;
+    // BPM Real (opcional, pero debe ser válido si se proporciona)
+    if (trackData.bpmReal !== undefined && trackData.bpmReal !== null) {
+      const bpm = Number(trackData.bpmReal);
+      if (isNaN(bpm) || bpm < 20 || bpm > 300) {
+        errors.push("BPM Real debe estar entre 20 y 300");
+      }
+    }
+
+    // Calificación Individual (1-10)
+    if (
+      trackData.calificacionIndividual !== undefined &&
+      trackData.calificacionIndividual !== null
+    ) {
+      const rating = Number(trackData.calificacionIndividual);
+      if (isNaN(rating) || rating < 1 || rating > 10) {
+        errors.push("Calificación Individual debe estar entre 1 y 10");
+      }
+    }
+
+    return {
+      valid: errors.length === 0,
+      errors,
+    };
   }
 
-  // ==================== HELPERS PÚBLICOS ====================
+  validateEstructuraTemporalData(estructuraData, isUpdate = false) {
+    const errors = [];
 
-  /**
-   * Calcular porcentaje de uso de caracteres
-   * @param {string} text
-   * @param {number} maxChars
-   * @returns {number} Porcentaje (0-100)
-   */
-  static calculateCharUsage(text, maxChars) {
-    if (!text) return 0;
-    return Math.round((text.length / maxChars) * 100);
+    // Seccion es obligatoria
+    if (!isUpdate && !estructuraData.seccion) {
+      errors.push("Sección es obligatoria");
+    }
+
+    // TiempoInicio y TiempoFin son obligatorios
+    if (!isUpdate && !estructuraData.tiempoInicio) {
+      errors.push("Tiempo Inicio es obligatorio");
+    }
+
+    if (!isUpdate && !estructuraData.tiempoFin) {
+      errors.push("Tiempo Fin es obligatorio");
+    }
+
+    if (
+      estructuraData.tiempoInicio &&
+      !this._isValidTimeFormat(estructuraData.tiempoInicio)
+    ) {
+      errors.push("Tiempo Inicio debe estar en formato mm:ss");
+    }
+
+    if (
+      estructuraData.tiempoFin &&
+      !this._isValidTimeFormat(estructuraData.tiempoFin)
+    ) {
+      errors.push("Tiempo Fin debe estar en formato mm:ss");
+    }
+
+    // Validar que TiempoFin > TiempoInicio
+    if (estructuraData.tiempoInicio && estructuraData.tiempoFin) {
+      const inicioSec = this._timeToSeconds(estructuraData.tiempoInicio);
+      const finSec = this._timeToSeconds(estructuraData.tiempoFin);
+
+      if (finSec <= inicioSec) {
+        errors.push("Tiempo Fin debe ser mayor que Tiempo Inicio");
+      }
+    }
+
+    return {
+      valid: errors.length === 0,
+      errors,
+    };
   }
 
-  /**
-   * Verificar si un prompt está cerca del límite de caracteres
-   * @param {Object} promptData
-   * @returns {Object} Warnings por campo
-   */
-  static checkCharacterLimits(promptData) {
-    const warnings = {};
+  validateCuePointData(cueData, isUpdate = false) {
+    const errors = [];
 
-    if (promptData.lyrics) {
-      const usage = SoundtrackService.calculateCharUsage(
-        promptData.lyrics,
-        SoundtrackService.LIMITS.LYRICS_MAX
-      );
-      if (usage > 90) {
-        warnings.lyrics = `${usage}% del límite usado (${promptData.lyrics.length}/${SoundtrackService.LIMITS.LYRICS_MAX})`;
+    // Tiempo es obligatorio
+    if (!isUpdate && !cueData.tiempo) {
+      errors.push("Tiempo es obligatorio");
+    }
+
+    if (cueData.tiempo && !this._isValidTimeFormat(cueData.tiempo)) {
+      errors.push("Tiempo debe estar en formato mm:ss");
+    }
+
+    // Color debe ser hex válido si se proporciona
+    if (cueData.color && !this._isValidHexColor(cueData.color)) {
+      errors.push("Color debe ser un código hexadecimal válido (#RRGGBB)");
+    }
+
+    return {
+      valid: errors.length === 0,
+      errors,
+    };
+  }
+
+  validateSeccionEstructuraData(seccionData, isUpdate = false) {
+    const errors = [];
+
+    // TipoSeccion es obligatorio
+    if (!isUpdate && !seccionData.tipoSeccion) {
+      errors.push("Tipo de Sección es obligatorio");
+    }
+
+    // Validar tipos de sección permitidos
+    const validTipos = [
+      "Verse",
+      "Chorus",
+      "Bridge",
+      "Intro",
+      "Outro",
+      "Pre-Chorus",
+      "Instrumental",
+      "Break",
+    ];
+    if (
+      seccionData.tipoSeccion &&
+      !validTipos.includes(seccionData.tipoSeccion)
+    ) {
+      errors.push(`Tipo de Sección debe ser uno de: ${validTipos.join(", ")}`);
+    }
+
+    return {
+      valid: errors.length === 0,
+      errors,
+    };
+  }
+
+  validateVrpData(vrpData, isUpdate = false) {
+    const errors = [];
+
+    // ContenidoVrp es obligatorio
+    if (
+      !isUpdate &&
+      (!vrpData.contenidoVrp || vrpData.contenidoVrp.trim() === "")
+    ) {
+      errors.push("Contenido VRP es obligatorio");
+    }
+
+    // Validar Efectividad (1-10) si se proporciona
+    if (vrpData.efectividad !== undefined && vrpData.efectividad !== null) {
+      const rating = Number(vrpData.efectividad);
+      if (isNaN(rating) || rating < 1 || rating > 10) {
+        errors.push("Efectividad debe estar entre 1 y 10");
       }
     }
 
-    if (promptData.styleDescription) {
-      const usage = SoundtrackService.calculateCharUsage(
-        promptData.styleDescription,
-        SoundtrackService.LIMITS.STYLE_DESCRIPTION_MAX
-      );
-      if (usage > 90) {
-        warnings.styleDescription = `${usage}% del límite usado (${promptData.styleDescription.length}/${SoundtrackService.LIMITS.STYLE_DESCRIPTION_MAX})`;
+    return {
+      valid: errors.length === 0,
+      errors,
+    };
+  }
+
+  validateDescriptorData(descriptorData, isUpdate = false) {
+    const errors = [];
+
+    // Descriptor1 es obligatorio
+    if (
+      !isUpdate &&
+      (!descriptorData.descriptor1 || descriptorData.descriptor1.trim() === "")
+    ) {
+      errors.push("Descriptor es obligatorio");
+    }
+
+    if (descriptorData.descriptor1 && descriptorData.descriptor1.length > 255) {
+      errors.push("Descriptor no puede exceder 255 caracteres");
+    }
+
+    // Categoria es obligatoria
+    if (!isUpdate && !descriptorData.categoria) {
+      errors.push("Categoría es obligatoria");
+    }
+
+    const validCategorias = [
+      "Fundación Rítmica",
+      "Atmosférico",
+      "Técnico",
+      "Único",
+    ];
+    if (
+      descriptorData.categoria &&
+      !validCategorias.includes(descriptorData.categoria)
+    ) {
+      errors.push(`Categoría debe ser una de: ${validCategorias.join(", ")}`);
+    }
+
+    // Validar EfectividadPromedio (1-10) si se proporciona
+    if (
+      descriptorData.efectividadPromedio !== undefined &&
+      descriptorData.efectividadPromedio !== null
+    ) {
+      const rating = Number(descriptorData.efectividadPromedio);
+      if (isNaN(rating) || rating < 1 || rating > 10) {
+        errors.push("Efectividad Promedio debe estar entre 1 y 10");
       }
     }
 
-    if (promptData.excludedStyle) {
-      const usage = SoundtrackService.calculateCharUsage(
-        promptData.excludedStyle,
-        SoundtrackService.LIMITS.EXCLUDED_STYLE_MAX
-      );
-      if (usage > 90) {
-        warnings.excludedStyle = `${usage}% del límite usado (${promptData.excludedStyle.length}/${SoundtrackService.LIMITS.EXCLUDED_STYLE_MAX})`;
-      }
+    return {
+      valid: errors.length === 0,
+      errors,
+    };
+  }
+
+  // ==================== HELPERS ====================
+
+  _isValidUrl(url) {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  _isValidTimeFormat(time) {
+    return /^\d{1,2}:\d{2}$/.test(time);
+  }
+
+  _isValidHexColor(color) {
+    return /^#[0-9A-Fa-f]{6}$/.test(color);
+  }
+
+  _timeToSeconds(time) {
+    const [min, sec] = time.split(":").map(Number);
+    return min * 60 + sec;
+  }
+
+  checkCharacterLimits(promptData) {
+    const limits = {};
+
+    if (promptData.lyrics && promptData.lyrics.length > 5000) {
+      limits.lyrics = `Excede el límite: ${promptData.lyrics.length}/5000`;
     }
 
-    return warnings;
+    if (
+      promptData.styleDescription &&
+      promptData.styleDescription.length > 1000
+    ) {
+      limits.styleDescription = `Excede el límite: ${promptData.styleDescription.length}/1000`;
+    }
+
+    if (promptData.excludedStyle && promptData.excludedStyle.length > 1000) {
+      limits.excludedStyle = `Excede el límite: ${promptData.excludedStyle.length}/1000`;
+    }
+
+    return limits;
+  }
+
+  // ==================== BÚSQUEDAS (EXISTENTES) ====================
+
+  async searchPrompts(query) {
+    try {
+      const allPrompts = await this.repository.getAll();
+
+      const filtered = allPrompts.filter((prompt) => {
+        const searchText =
+          `${prompt.songTitle} ${prompt.lyrics} ${prompt.styleDescription}`.toLowerCase();
+        return searchText.includes(query.toLowerCase());
+      });
+
+      return filtered;
+    } catch (error) {
+      throw new Error(`Error al buscar prompts: ${error.message}`);
+    }
+  }
+
+  async filterByTag(tag) {
+    try {
+      const allPrompts = await this.repository.getAll();
+
+      return allPrompts.filter(
+        (prompt) =>
+          prompt.tags &&
+          prompt.tags.some((t) => t.toLowerCase() === tag.toLowerCase())
+      );
+    } catch (error) {
+      throw new Error(`Error al filtrar por tag: ${error.message}`);
+    }
+  }
+
+  async filterByRating(minRating) {
+    try {
+      const allPrompts = await this.repository.getAll();
+
+      return allPrompts.filter(
+        (prompt) => prompt.calificacion && prompt.calificacion >= minRating
+      );
+    } catch (error) {
+      throw new Error(`Error al filtrar por calificación: ${error.message}`);
+    }
   }
 }
 
-// Exportar singleton
-export const soundtrackService = new SoundtrackService();
-
-export default soundtrackService;
+export default new SoundtrackService();

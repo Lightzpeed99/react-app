@@ -4,14 +4,23 @@ import { useState, useEffect } from 'react'
 import './SoundtrackForm.css'
 
 /**
- * SoundtrackForm - Formulario completo para crear/editar prompts de Suno
+ * SoundtrackForm - Formulario SIMPLIFICADO para crear/editar prompts de Suno
  * 
- * RESPONSABILIDADES:
- * - Todos los campos de Suno (extraídos de ComponentRenderer)
- * - Validaciones en tiempo real
- * - Contadores de caracteres
- * - Gestión de tags, estructura, cue points
- * - Sliders de Weirdness y Style Influence
+ * RESPONSABILIDADES (REDUCIDAS):
+ * - Solo campos que vienen de Suno al copiar el prompt
+ * - NO incluye: BPM Real, Key, Duración Real, Estructura, CuePoints, Momento
+ * - Esos campos ahora van a TrackAnalyzer
+ * 
+ * CAMPOS QUE QUEDARON:
+ * - SongTitle (obligatorio)
+ * - Lyrics (max 5000)
+ * - StyleDescription (max 1000)
+ * - ExcludedStyle (max 1000)
+ * - Weirdness (0-100)
+ * - StyleInfluence (0-100)
+ * - VocalGender (male/female/neutral)
+ * - Tags (array)
+ * - Notas generales del prompt
  * 
  * PROPS:
  * @param {Object} initialData - Datos iniciales del prompt (opcional)
@@ -32,16 +41,9 @@ const SoundtrackForm = ({ initialData = null, onSave, onCancel, isLoading = fals
         excludedStyle: initialData.excludedStyle || '',
         weirdness: initialData.weirdness || 50,
         styleInfluence: initialData.styleInfluence || 50,
-        version: initialData.version || 'v4.5',
-        duracion: initialData.duracion || '3:30',
-        sunoUrl: initialData.sunoUrl || '',
-        bpm: initialData.bpm || '',
-        key: initialData.key || '',
+        vocalGender: initialData.vocalGender || null,
         tags: initialData.tags || [],
-        momento: initialData.momento || '',
         notas: initialData.notas || '',
-        estructura: initialData.estructura || [],
-        cuePoints: initialData.cuePoints || [],
       }
     }
 
@@ -52,16 +54,9 @@ const SoundtrackForm = ({ initialData = null, onSave, onCancel, isLoading = fals
       excludedStyle: '',
       weirdness: 50,
       styleInfluence: 50,
-      version: 'v4.5',
-      duracion: '3:30',
-      sunoUrl: '',
-      bpm: '',
-      key: '',
+      vocalGender: null,
       tags: [],
-      momento: '',
       notas: '',
-      estructura: [],
-      cuePoints: [],
     }
   }
 
@@ -206,92 +201,6 @@ const SoundtrackForm = ({ initialData = null, onSave, onCancel, isLoading = fals
     }
   }
 
-  // ==================== HANDLERS - ESTRUCTURA ====================
-
-  const handleAddEstructura = () => {
-    setFormData(prev => ({
-      ...prev,
-      estructura: [
-        ...prev.estructura,
-        {
-          seccion: 'Intro',
-          inicio: '0:00',
-          fin: '0:16',
-          descripcion: ''
-        }
-      ]
-    }))
-  }
-
-  const handleUpdateEstructura = (index, field, value) => {
-    setFormData(prev => {
-      const newEstructura = [...prev.estructura]
-      newEstructura[index] = {
-        ...newEstructura[index],
-        [field]: value
-      }
-      return { ...prev, estructura: newEstructura }
-    })
-  }
-
-  const handleRemoveEstructura = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      estructura: prev.estructura.filter((_, i) => i !== index)
-    }))
-  }
-
-  // ==================== HANDLERS - CUE POINTS ====================
-
-  const handleAddCuePoint = () => {
-    setFormData(prev => ({
-      ...prev,
-      cuePoints: [
-        ...prev.cuePoints,
-        {
-          tiempo: '0:00',
-          tipo: 'intro',
-          etiqueta: '',
-          color: '#00d4ff'
-        }
-      ]
-    }))
-  }
-
-  const handleUpdateCuePoint = (index, field, value) => {
-    setFormData(prev => {
-      const newCuePoints = [...prev.cuePoints]
-      newCuePoints[index] = {
-        ...newCuePoints[index],
-        [field]: value
-      }
-
-      // Si se cambia el tipo, actualizar el color automáticamente
-      if (field === 'tipo') {
-        const cueTypeColors = {
-          intro: '#00d4ff',
-          drop: '#ff3333',
-          buildup: '#ff6600',
-          breakdown: '#ffd700',
-          outro: '#ff0080',
-          vocal: '#00ff41',
-          instrumental: '#ffffff',
-          bridge: '#cc00ff'
-        }
-        newCuePoints[index].color = cueTypeColors[value] || '#00d4ff'
-      }
-
-      return { ...prev, cuePoints: newCuePoints }
-    })
-  }
-
-  const handleRemoveCuePoint = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      cuePoints: prev.cuePoints.filter((_, i) => i !== index)
-    }))
-  }
-
   // ==================== HANDLERS - SUBMIT ====================
 
   const handleSubmit = (e) => {
@@ -344,23 +253,7 @@ const SoundtrackForm = ({ initialData = null, onSave, onCancel, isLoading = fals
     return '#00d4ff'
   }
 
-  // ==================== CONSTANTES ====================
-
-  const estructuraTipos = [
-    'Intro', 'Verse', 'Pre-Chorus', 'Chorus', 'Drop', 
-    'Break', 'Bridge', 'Outro', 'Build-up', 'Breakdown'
-  ]
-
-  const cueTypes = [
-    { value: 'intro', label: 'Intro', color: '#00d4ff' },
-    { value: 'drop', label: 'Drop', color: '#ff3333' },
-    { value: 'buildup', label: 'Build-up', color: '#ff6600' },
-    { value: 'breakdown', label: 'Breakdown', color: '#ffd700' },
-    { value: 'outro', label: 'Outro', color: '#ff0080' },
-    { value: 'vocal', label: 'Vocal', color: '#00ff41' },
-    { value: 'instrumental', label: 'Instrumental', color: '#ffffff' },
-    { value: 'bridge', label: 'Bridge', color: '#cc00ff' }
-  ]
+  // ==================== RENDER CONSTANTS ====================
 
   const genreColor = getGenreColor()
   const lyricsInfo = getCharCount(formData.lyrics, 5000)
@@ -519,72 +412,20 @@ const SoundtrackForm = ({ initialData = null, onSave, onCancel, isLoading = fals
         </div>
       </div>
 
-      {/* TECHNICAL INFO */}
-      <div className="form-section technical-section">
-        <h3 className="section-title">⚙️ Información Técnica</h3>
-        <div className="technical-grid">
-          <div className="tech-input-group">
-            <label className="form-label">BPM:</label>
-            <input
-              type="text"
-              value={formData.bpm}
-              onChange={(e) => handleChange('bpm', e.target.value)}
-              placeholder="120"
-              className="form-input bpm-input"
-              disabled={isLoading}
-            />
-          </div>
-
-          <div className="tech-input-group">
-            <label className="form-label">Key:</label>
-            <input
-              type="text"
-              value={formData.key}
-              onChange={(e) => handleChange('key', e.target.value)}
-              placeholder="Am, C#"
-              className="form-input key-input"
-              disabled={isLoading}
-            />
-          </div>
-
-          <div className="tech-input-group">
-            <label className="form-label">Duración:</label>
-            <input
-              type="text"
-              value={formData.duracion}
-              onChange={(e) => handleChange('duracion', e.target.value)}
-              placeholder="3:30"
-              className="form-input duration-input"
-              disabled={isLoading}
-            />
-          </div>
-
-          <div className="tech-input-group">
-            <label className="form-label">Versión:</label>
-            <select
-              value={formData.version}
-              onChange={(e) => handleChange('version', e.target.value)}
-              className="form-select version-select"
-              disabled={isLoading}
-            >
-              <option value="v4.5">v4.5</option>
-              <option value="v4.0">v4.0</option>
-              <option value="v3.5">v3.5</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="tech-input-group full-width">
-          <label className="form-label">Suno URL:</label>
-          <input
-            type="url"
-            value={formData.sunoUrl}
-            onChange={(e) => handleChange('sunoUrl', e.target.value)}
-            placeholder="https://suno.com/song/..."
-            className="form-input suno-url-input"
-            disabled={isLoading}
-          />
-        </div>
+      {/* VOCAL GENDER */}
+      <div className="form-section">
+        <label className="form-label">Vocal Gender:</label>
+        <select
+          value={formData.vocalGender || ''}
+          onChange={(e) => handleChange('vocalGender', e.target.value || null)}
+          className="form-select"
+          disabled={isLoading}
+        >
+          <option value="">Sin especificar</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+          <option value="neutral">Neutral</option>
+        </select>
       </div>
 
       {/* TAGS */}
@@ -628,160 +469,13 @@ const SoundtrackForm = ({ initialData = null, onSave, onCancel, isLoading = fals
         </div>
       </div>
 
-      {/* ESTRUCTURA MUSICAL */}
-      <div className="form-section estructura-section">
-        <div className="section-header">
-          <label className="form-label">📊 Estructura Musical:</label>
-          <button
-            type="button"
-            onClick={handleAddEstructura}
-            className="add-small-btn"
-            disabled={isLoading}
-          >
-            + Sección
-          </button>
-        </div>
-        <div className="estructura-list">
-          {formData.estructura.map((seccion, index) => (
-            <div key={index} className="estructura-item">
-              <select
-                value={seccion.seccion}
-                onChange={(e) => handleUpdateEstructura(index, 'seccion', e.target.value)}
-                className="estructura-select"
-                disabled={isLoading}
-              >
-                {estructuraTipos.map(tipo => (
-                  <option key={tipo} value={tipo}>{tipo}</option>
-                ))}
-              </select>
-
-              <input
-                type="text"
-                value={seccion.inicio}
-                onChange={(e) => handleUpdateEstructura(index, 'inicio', e.target.value)}
-                placeholder="0:00"
-                className="time-input"
-                disabled={isLoading}
-              />
-
-              <span className="time-separator">-</span>
-
-              <input
-                type="text"
-                value={seccion.fin}
-                onChange={(e) => handleUpdateEstructura(index, 'fin', e.target.value)}
-                placeholder="0:16"
-                className="time-input"
-                disabled={isLoading}
-              />
-
-              <input
-                type="text"
-                value={seccion.descripcion}
-                onChange={(e) => handleUpdateEstructura(index, 'descripcion', e.target.value)}
-                placeholder="Descripción..."
-                className="descripcion-input"
-                disabled={isLoading}
-              />
-
-              <button
-                type="button"
-                onClick={() => handleRemoveEstructura(index)}
-                className="remove-small-btn"
-                disabled={isLoading}
-              >
-                ×
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* CUE POINTS */}
-      <div className="form-section cuepoints-section">
-        <div className="section-header">
-          <label className="form-label">🎯 Cue Points (para DJ/Mixing):</label>
-          <button
-            type="button"
-            onClick={handleAddCuePoint}
-            className="add-small-btn"
-            disabled={isLoading}
-          >
-            + Cue Point
-          </button>
-        </div>
-        <div className="cuepoints-list">
-          {formData.cuePoints.map((cue, index) => (
-            <div key={index} className="cuepoint-item">
-              <input
-                type="text"
-                value={cue.tiempo}
-                onChange={(e) => handleUpdateCuePoint(index, 'tiempo', e.target.value)}
-                placeholder="1:23"
-                className="time-input"
-                disabled={isLoading}
-              />
-
-              <select
-                value={cue.tipo}
-                onChange={(e) => handleUpdateCuePoint(index, 'tipo', e.target.value)}
-                className="cue-type-select"
-                disabled={isLoading}
-              >
-                {cueTypes.map(type => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
-                  </option>
-                ))}
-              </select>
-
-              <input
-                type="text"
-                value={cue.etiqueta}
-                onChange={(e) => handleUpdateCuePoint(index, 'etiqueta', e.target.value)}
-                placeholder="Etiqueta del cue..."
-                className="cue-label-input"
-                disabled={isLoading}
-              />
-
-              <div 
-                className="cue-color-indicator"
-                style={{ backgroundColor: cue.color || '#00d4ff' }}
-              />
-
-              <button
-                type="button"
-                onClick={() => handleRemoveCuePoint(index)}
-                className="remove-small-btn"
-                disabled={isLoading}
-              >
-                ×
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* MOMENTO NARRATIVO */}
+      {/* NOTAS GENERALES */}
       <div className="form-section">
-        <label className="form-label">🎬 Momento Narrativo:</label>
-        <input
-          type="text"
-          value={formData.momento}
-          onChange={(e) => handleChange('momento', e.target.value)}
-          placeholder="Cuándo se usa en la historia..."
-          className="form-input momento-input"
-          disabled={isLoading}
-        />
-      </div>
-
-      {/* NOTAS */}
-      <div className="form-section">
-        <label className="form-label">📝 Notas & Variaciones:</label>
+        <label className="form-label">📝 Notas Generales del Prompt:</label>
         <textarea
           value={formData.notas}
           onChange={(e) => handleChange('notas', e.target.value)}
-          placeholder="Notas sobre iteraciones, cambios, ideas para remix..."
+          placeholder="Notas generales sobre este prompt (contexto, experimentos, variaciones que has probado, etc.)"
           rows={3}
           className="form-textarea notes-textarea"
           disabled={isLoading}

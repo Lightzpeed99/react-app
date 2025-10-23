@@ -933,3 +933,178 @@ font-family: 'Fira Code', monospace;
 .notas-display::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(135deg, var(--primary-blue-dark), #00cc33);
 }
+
+/* ==================== ⭐ ANALYZERS SECTION ==================== */
+
+.analyzers-section {
+  margin-top: 2rem;
+}
+
+.analyzers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.analyzer-card-btn {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+}
+
+.analyzer-card-btn:hover:not(:disabled) {
+  background: rgba(0, 212, 255, 0.1);
+  border-color: var(--primary-blue);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 212, 255, 0.2);
+}
+
+.analyzer-card-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.analyzer-icon {
+  font-size: 2.5rem;
+  flex-shrink: 0;
+}
+
+.analyzer-info {
+  flex: 1;
+}
+
+.analyzer-info h4 {
+  color: var(--primary-blue);
+  font-size: 1.1rem;
+  margin: 0 0 0.5rem 0;
+  font-weight: 600;
+}
+
+.analyzer-info p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* ==================== ⭐ TRACKS SECTION ==================== */
+
+.tracks-section {
+  margin-top: 2rem;
+}
+
+.tracks-list {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.track-card {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.track-card:hover {
+  background: rgba(0, 212, 255, 0.05);
+  border-color: var(--primary-blue);
+  transform: translateX(4px);
+  box-shadow: 0 4px 20px rgba(0, 212, 255, 0.15);
+}
+
+.track-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.track-number {
+  font-weight: 600;
+  color: var(--primary-blue);
+  font-size: 1rem;
+}
+
+.track-rating {
+  color: var(--secondary-orange);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.track-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.track-duration,
+.track-bpm,
+.track-key {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.track-momento {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0.5rem 0;
+  font-style: italic;
+}
+
+.track-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--primary-blue);
+  text-decoration: none;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0;
+  transition: color 0.3s ease;
+}
+
+.track-link:hover {
+  color: var(--secondary-green);
+  text-decoration: underline;
+}
+
+/* ==================== RESPONSIVE ==================== */
+
+@media (max-width: 768px) {
+  .analyzers-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .analyzer-card-btn {
+    padding: 1.25rem;
+  }
+  
+  .analyzer-icon {
+    font-size: 2rem;
+  }
+  
+  .track-card {
+    padding: 1.25rem;
+  }
+  
+  .track-info {
+    gap: 0.75rem;
+  }
+}
