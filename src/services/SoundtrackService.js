@@ -104,7 +104,14 @@ class SoundtrackService {
     }
 
     try {
-      return await this.repository.update(id, { calificacion: rating });
+      // 1. Obtener prompt completo
+      const prompt = await this.getPromptById(id);
+
+      // 2. Actualizar solo rating
+      prompt.calificacion = rating;
+
+      // 3. Enviar todo de vuelta
+      return await this.repository.update(id, prompt);
     } catch (error) {
       throw new Error(`Error al calificar prompt ${id}: ${error.message}`);
     }

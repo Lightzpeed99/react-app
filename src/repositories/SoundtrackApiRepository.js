@@ -473,12 +473,10 @@ class SoundtrackApiRepository extends BaseRepository {
             Bpm: null,
           }
         : null,
-      ExcludedStyles: promptData.excludedStyle
-        ? [
-            {
-              ContenidoCompleto: promptData.excludedStyle,
-            },
-          ]
+      ExcludedStyle: promptData.excludedStyle
+        ? {
+            ContenidoCompleto: promptData.excludedStyle,
+          }
         : null,
       AdvancedOptions: {
         VocalGender: promptData.vocalGender || null,
