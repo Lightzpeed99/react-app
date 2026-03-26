@@ -8,6 +8,7 @@ import NotebookView from './components/NotebookView'
 import Navigation from './components/Navigation'
 import SoundtrackCatalog from './features/soundtrack/components/SoundtrackCatalog'
 import SoundtrackDetail from './features/soundtrack/components/SoundtrackDetail'
+import TrackAnalyzer from './features/soundtrack/components/TrackAnalyzer' // ⭐ NUEVO
 
 function App() {
   const [currentView, setCurrentView] = useState('catalog')
@@ -17,6 +18,9 @@ function App() {
   // Estados para Soundtrack
   const [soundtrackView, setSoundtrackView] = useState('catalog') // 'catalog' | 'detail'
   const [selectedPrompt, setSelectedPrompt] = useState(null)
+  
+  // ⭐ NUEVO: Estados para Analyzers
+  const [analyzerData, setAnalyzerData] = useState(null)
 
   // Cargar items del localStorage al iniciar
   useEffect(() => {
@@ -132,6 +136,12 @@ function App() {
     setSelectedPrompt(null)
   }
 
+  // ⭐ NUEVO: Handler para navegar a analyzers
+  const handleNavigateToAnalyzer = (type, promptId, trackId = null) => {
+    setAnalyzerData({ type, promptId, trackId })
+    setSoundtrackView(`${type}-analyzer`)
+  }
+
   // ==================== RENDER VIEWS ====================
 
   const renderCurrentView = () => {
@@ -158,19 +168,34 @@ function App() {
       case 'notebook':
         return <NotebookView />
       case 'soundtrack':
+        // ⭐ MODIFICADO: Ahora maneja múltiples vistas
         return soundtrackView === 'catalog' ? (
           <SoundtrackCatalog
             onViewDetail={handleViewPromptDetail}
             onCreateNew={handleCreateNewPrompt}
           />
-        ) : (
+        ) : soundtrackView === 'detail' ? (
           <SoundtrackDetail
             prompt={selectedPrompt}
             onBack={handleBackToSoundtrackCatalog}
             onSave={handlePromptUpdated}
             onDelete={handlePromptUpdated}
+            onNavigateToAnalyzer={handleNavigateToAnalyzer} // ⭐ NUEVO
           />
-        )
+        ) : soundtrackView === 'track-analyzer' ? (
+          <TrackAnalyzer
+            promptId={analyzerData.promptId}
+            trackId={analyzerData.trackId}
+            onBack={() => {
+              setSoundtrackView('detail')
+              setAnalyzerData(null)
+            }}
+            onSave={() => {
+              setSoundtrackView('detail')
+              setAnalyzerData(null)
+            }}
+          />
+        ) : null
       default:
         return (
           <CharacterCatalog 
